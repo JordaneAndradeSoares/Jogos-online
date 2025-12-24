@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Nave Espacial ONLINE</title>
+    <style>
+        body { margin: 0; background: #000; display: flex; flex-direction: column; align-items: center; font-family: Arial, sans-serif; color: white; overflow: hidden; }
+        p { margin: 12px; font-size: 18px; }
+        canvas { background: #000510; border: 2px solid #444; width: 100%; max-width: 800px; height: auto; cursor: none; }
+        a { color: #00d4ff; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<p>MENU CENTRAL: <a href="../index.html">Clique aqui para voltar</a></p>
+<canvas id="game" width="800" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+// Configurações
+const LARGURA = 800;
+const ALTURA = 400;
+let jogando = false;
+let pontos = 0;
+let gameFrame = 0;
+
+// Nave
+const nave = {
+    x: 50,
+    y: 200,
+    largura: 50,
+    altura: 30,
+    cor: "#00d4ff"
+};
+
+// Obstáculos (Asteroides)
+const asteroides = [];
+
+// Controlos
+window.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseY = (e.clientY - rect.top) * (ALTURA / rect.height);
+    nave.y = mouseY - nave.altura / 2;
+});
+
+window.addEventListener("touchstart", (e) => {
+    if (!jogando) { jogando = true; pontos = 0; asteroides.length = 0; }
+    const rect = canvas.getBoundingClientRect();
+    const touchY = (e.touches[0].clientY - rect.top) * (ALTURA / rect.height);
+    nave.y = touchY - nave.altura / 2;
+}, { passive: false });
+
+window.addEventListener("touchmove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const touchY = (e.touches[0].clientY - rect.top) * (ALTURA / rect.height);
+    nave.y = touchY - nave.altura / 2;
+}, { passive: false });
+
+function spawnAsteroide() {
+    const tamanho = Math.random() * 40 + 20;
+    asteroides.push({
+        x: LARGURA,
+        y: Math.random() * (ALTURA - tamanho),
+        tamanho: tamanho,
+        velocidade: Math.random() * 4 + 3 + (pontos / 10)
+    });
+}
+
+function loop() {
+    ctx.clearRect(0, 0, LARGURA, ALTURA);
+
+    // Fundo Estelar
+    ctx.fillStyle = "white";
+    for(let i=0; i<5; i++) ctx.fillRect(Math.random()*LARGURA, Math.random()*ALTURA, 2, 2);
+
+    if (jogando) {
+        // Desenhar Nave (Triângulo)
+        ctx.fillStyle = nave.cor;
+        ctx.beginPath();
+        ctx.moveTo(nave.x, nave.y);
+        ctx.lineTo(nave.x + nave.largura, nave.y + nave.altura/2);
+        ctx.lineTo(nave.x, nave.y + nave.altura);
+        ctx.closePath();
+        ctx.fill();
+
+        // Lógica dos Asteroides
+        if (gameFrame % 60 === 0) spawnAsteroide();
+        
+        for (let i = asteroides.length - 1; i >= 0; i--) {
+            const a = asteroides[i];
+            a.x -= a.velocidade;
+
+            // Desenhar Asteroide
+            ctx.fillStyle = "#888";
+            ctx.beginPath();
+            ctx.arc(a.x, a.y + a.tamanho/2, a.tamanho/2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Colisão
+            if (nave.x < a.x + a.tamanho/2 &&
+                nave.x + nave.largura > a.x - a.tamanho/2 &&
+                nave.y < a.y + a.tamanho &&
+                nave.y + nave.altura > a.y) {
+                jogando = false;
+            }
+
+            // Remover fora da tela
+            if (a.x + a.tamanho < 0) {
+                asteroides.splice(i, 1);
+                pontos++;
+            }
+        }
+
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText("Pontos: " + pontos, 20, 30);
+        gameFrame++;
+    } else {
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.font = "30px Arial";
+        ctx.fillText("NAVE ESPACIAL", LARGURA/2, 150);
+        ctx.font = "20px Arial";
+        ctx.fillText("Clique ou Toque para Iniciar", LARGURA/2, 200);
+        ctx.fillText("Desvie dos asteroides movendo o mouse ou o dedo", LARGURA/2, 240);
+        if(pontos > 0) ctx.fillText("Pontuação Final: " + pontos, LARGURA/2, 280);
+        ctx.textAlign = "start";
+    }
+
+    requestAnimationFrame(loop);
+}
+
+canvas.addEventListener("click", () => { if(!jogando) { jogando = true; pontos = 0; asteroides.length = 0; } });
+
+loop();
+</script>
+</body>
+</html>

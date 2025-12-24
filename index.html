@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Jogos ONLINE</title>
+    <style> 
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* vertical */
+            align-items: center;     /* horizontal */
+            font-family: Arial, sans-serif;
+            /* Corrigido: background-size cover para a imagem preencher a tela */
+            background-image: url('fundo.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .container {
+            background-color: rgba(127, 255, 212, 0.9); /* Aquamarine com leve transparência */
+            border-radius: 20px;
+            padding: 2em;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        p {
+            font-size: 1.1em;
+            margin: 15px 0;
+        }
+
+        a {
+            color: #0056b3;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MEUS JOGOS</h1>
+        <p>Jogo 1 (amogus): <a href="amogus/amogus.html">Clique aqui para jogar</a></p>
+        
+        <p>Jogo 2 (nave espacial): <a href="nave/nave.html">Clique aqui para jogar</a></p>
+        
+        <p>Jogo 3 (sapo): <a href="sapo/sapo.html">Clique aqui para jogar</a></p>
+    </div>
+</body>
+</html>
