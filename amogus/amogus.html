@@ -93,9 +93,8 @@ let obstaculoVoadorX = BASE_LARGURA;
 let obstaculoVoadorY = BASE_ALTURA - TAMANHO * 2.1;
 let tipoObstaculo = true;
 
-// Corrigido: Espaço agora também inicia o jogo
 document.addEventListener("keydown", e => {
-    if (e.code === "KeyK" || e.code === "Space") {
+    if (e.code === "KeyK") {
         if (!jogando) {
             jogando = true;
             if (derrota) {
@@ -201,7 +200,8 @@ function loop() {
         ctx.fillStyle = "black";
         ctx.textAlign = "center";
         ctx.font = "26px Arial";
-        ctx.fillText("Toque ou pressione ESPAÇO para iniciar", BASE_LARGURA/2, 200);
+        ctx.fillText("Toque ou pressione K para iniciar", BASE_LARGURA/2, 200);
+        ctx.fillText("Toque ou precione ESPAÇO para pular", BASE_LARGURA/2, 300);
         
         if (derrota) {
             ctx.fillStyle = "red";
