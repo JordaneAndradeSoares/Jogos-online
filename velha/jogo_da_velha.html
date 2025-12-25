@@ -2,195 +2,227 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Jogo da Velha</title>
 
 <style>
-    html, body {
+    body {
         margin: 0;
-        width: 100%;
-        height: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
-        background: #222;
+        min-height: 100vh;
+        background: #111;
         font-family: Arial, sans-serif;
-    }
-
-    .game-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    canvas {
-        background: white;
-        touch-action: none;
-        max-width: 90vw;
-        max-height: 90vw;
-    }
-
-    .status {
-        margin-top: 10px;
         color: white;
-        font-size: 18px;
-        height: 24px;
+        text-align: center;
+    }
+    #status {
+        margin-top: 10px;
+        font-size: 1.2em;
+        font-weight: bold;
     }
 </style>
 </head>
-<body>
 
-<div class="game-container">
-    <canvas id="game" width="400" height="400"></canvas>
-    <div class="status" id="status">Seu turno. Você é a bolinha</div>
+<body>
+<div>
+    <canvas id="game"></canvas>
+    <div id="status">Seu turno. Você é O</div>
 </div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-const statusText = document.getElementById("status");
 
-const SIZE = 400;
-const CELL = SIZE / 3;
+let size = Math.min(window.innerWidth * 0.9, 400);
+canvas.width = size;
+canvas.height = size;
 
 let board = [
-    [null, null, null],
-    [null, null, null],
-    [null, null, null]
+    ["", "", ""],
+    ["", "", ""],
+    ["", "", ""]
 ];
 
-let current = "o";
+let currentPlayer = "O"; // jogador humano = O
 let winner = null;
 let draw = false;
+let winningLine = null; // marcação da vitória
+
+const statusText = document.getElementById("status");
+
+// ================== DESENHO DO JOGO =====================
 
 function drawBoard() {
-    ctx.clearRect(0, 0, SIZE, SIZE);
+    ctx.clearRect(0, 0, size, size);
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 3;
 
+    const cell = size / 3;
+
+    for (let i = 1; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * cell, 0);
+        ctx.lineTo(i * cell, size);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, i * cell);
+        ctx.lineTo(size, i * cell);
+        ctx.stroke();
+    }
+}
+
+function drawPieces() {
+    const cell = size / 3;
     ctx.lineWidth = 6;
-    ctx.strokeStyle = "#000";
-
-    ctx.beginPath();
-    ctx.moveTo(CELL, 0);
-    ctx.lineTo(CELL, SIZE);
-    ctx.moveTo(CELL * 2, 0);
-    ctx.lineTo(CELL * 2, SIZE);
-    ctx.moveTo(0, CELL);
-    ctx.lineTo(SIZE, CELL);
-    ctx.moveTo(0, CELL * 2);
-    ctx.lineTo(SIZE, CELL * 2);
-    ctx.stroke();
 
     for (let r = 0; r < 3; r++) {
         for (let c = 0; c < 3; c++) {
-            if (board[r][c]) {
-                drawSymbol(board[r][c], r, c);
+            const x = c * cell + cell / 2;
+            const y = r * cell + cell / 2;
+
+            if (board[r][c] === "O") {
+                ctx.strokeStyle = "cyan";
+                ctx.beginPath();
+                ctx.arc(x, y, cell / 3, 0, Math.PI * 2);
+                ctx.stroke();
+            } else if (board[r][c] === "X") {
+                ctx.strokeStyle = "orange";
+                ctx.beginPath();
+                ctx.moveTo(x - cell/3, y - cell/3);
+                ctx.lineTo(x + cell/3, y + cell/3);
+                ctx.moveTo(x + cell/3, y - cell/3);
+                ctx.lineTo(x - cell/3, y + cell/3);
+                ctx.stroke();
             }
         }
     }
 }
 
-function drawSymbol(symbol, row, col) {
-    const x = col * CELL + CELL / 2;
-    const y = row * CELL + CELL / 2;
-
+function drawWinningLine() {
+    if (!winningLine) return;
+    ctx.strokeStyle = "red";
     ctx.lineWidth = 6;
-
-    if (symbol === "x") {
-        ctx.strokeStyle = "red";
-        ctx.beginPath();
-        ctx.moveTo(x - 40, y - 40);
-        ctx.lineTo(x + 40, y + 40);
-        ctx.moveTo(x + 40, y - 40);
-        ctx.lineTo(x - 40, y + 40);
-        ctx.stroke();
-    } else {
-        ctx.strokeStyle = "blue";
-        ctx.beginPath();
-        ctx.arc(x, y, 40, 0, Math.PI * 2);
-        ctx.stroke();
-    }
+    ctx.beginPath();
+    ctx.moveTo(winningLine.x1, winningLine.y1);
+    ctx.lineTo(winningLine.x2, winningLine.y2);
+    ctx.stroke();
 }
 
+// ================== LÓGICA DO JOGO =====================
+
 function checkWin() {
-    for (let i = 0; i < 3; i++) {
-        if (board[i][0] && board[i][0] === board[i][1] && board[i][1] === board[i][2]) {
-            winner = board[i][0];
-        }
-        if (board[0][i] && board[0][i] === board[1][i] && board[1][i] === board[2][i]) {
-            winner = board[0][i];
+    const wins = [
+        [[0,0],[0,1],[0,2]],
+        [[1,0],[1,1],[1,2]],
+        [[2,0],[2,1],[2,2]],
+        [[0,0],[1,0],[2,0]],
+        [[0,1],[1,1],[2,1]],
+        [[0,2],[1,2],[2,2]],
+        [[0,0],[1,1],[2,2]],
+        [[0,2],[1,1],[2,0]]
+    ];
+
+    for (const combo of wins) {
+        const [a, b, c] = combo;
+        if (board[a[0]][a[1]] &&
+            board[a[0]][a[1]] === board[b[0]][b[1]] &&
+            board[a[0]][a[1]] === board[c[0]][c[1]]) {
+
+            winner = board[a[0]][a[1]];
+
+            winningLine = {
+                x1: (a[1] + .5) * (size/3),
+                y1: (a[0] + .5) * (size/3),
+                x2: (c[1] + .5) * (size/3),
+                y2: (c[0] + .5) * (size/3)
+            };
+
+            return true;
         }
     }
 
-    if (board[0][0] && board[0][0] === board[1][1] && board[1][1] === board[2][2]) {
-        winner = board[0][0];
-    }
-    if (board[0][2] && board[0][2] === board[1][1] && board[1][1] === board[2][0]) {
-        winner = board[0][2];
-    }
-
-    if (!winner && board.flat().every(cell => cell)) {
+    if (board.flat().every(cell => cell)) {
         draw = true;
     }
 
+    return false;
+}
+
+function botMove() {
+    if (winner || draw) return;
+    
+    while (true) {
+        const r = Math.floor(Math.random() * 3);
+        const c = Math.floor(Math.random() * 3);
+        if (!board[r][c]) {
+            board[r][c] = "X";
+            break;
+        }
+    }
+
+    currentPlayer = "O";
+    updateGame();
+}
+
+function updateGame() {
+    drawBoard();
+    drawPieces();
+    checkWin();
+    drawWinningLine();
+
     if (winner) {
-        statusText.textContent = winner === "o" ? "Você venceu!" : "O computador venceu!";
-        setTimeout(resetGame, 2000);
+        statusText.textContent = winner === "O" ? "Você venceu!" : "O computador venceu!";
+        setTimeout(resetGame, 2500);
     } else if (draw) {
         statusText.textContent = "Empate!";
         setTimeout(resetGame, 2000);
+    } else {
+        statusText.textContent = currentPlayer === "O" ? "Seu turno. Você é O" : "O computador está jogando...";
     }
 }
 
-function computerMove() {
-    let empty = [];
-    for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 3; c++) {
-            if (!board[r][c]) empty.push([r, c]);
-        }
-    }
-    if (empty.length === 0) return;
+// ================== INPUT =====================
 
-    const [r, c] = empty[Math.floor(Math.random() * empty.length)];
-    board[r][c] = "x";
-    current = "o";
-    drawBoard();
-    checkWin();
-}
-
-canvas.addEventListener("click", e => {
+function play(e) {
     if (winner || draw) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-    const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
 
-    const row = Math.floor(y / CELL);
-    const col = Math.floor(x / CELL);
+    const cell = size / 3;
+    const c = Math.floor(x / cell);
+    const r = Math.floor(y / cell);
 
-    if (!board[row][col]) {
-        board[row][col] = "o";
-        current = "x";
-        drawBoard();
-        checkWin();
-        if (!winner && !draw) setTimeout(computerMove, 300);
+    if (board[r][c] || currentPlayer !== "O") return;
+    
+    board[r][c] = "O";
+    currentPlayer = "X";
+    updateGame();
+
+    if (!winner && !draw) {
+        setTimeout(botMove, 400);
     }
-});
-
-function resetGame() {
-    board = [
-        [null, null, null],
-        [null, null, null],
-        [null, null, null]
-    ];
-    winner = null;
-    draw = false;
-    current = "o";
-    statusText.textContent = "Seu turno. Você é a bolinha";
-    drawBoard();
 }
 
-drawBoard();
-</script>
+canvas.addEventListener("click", play);
+canvas.addEventListener("touchstart", play);
 
+// ================== RESET =====================
+
+function resetGame() {
+    board = [["","",""],["","",""],["","",""]];
+    currentPlayer = "O";
+    winner = null;
+    draw = false;
+    winningLine = null;
+    updateGame();
+}
+
+updateGame();
+</script>
 </body>
 </html>
