@@ -102,10 +102,6 @@
     </div>
 
 <script>
-    // Toda a lógica de processamento (Worker e Canvas) permanece a mesma, 
-    // garantindo que o cálculo pesado não ocorra na thread principal.
-    // O código de processamento é idêntico ao anterior para manter a paridade 1:1.
-    
     async function carregarEPreparar(file, tamanho) {
         return new Promise((resolve) => {
             const img = new Image();
