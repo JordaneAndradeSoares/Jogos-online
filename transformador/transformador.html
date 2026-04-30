@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformação em Tempo Real</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .controls {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 400px;
+        }
+        label { display: flex; flex-direction: column; font-size: 14px; gap: 5px; }
+        input[type="file"], input[type="number"] { padding: 5px; }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background-color: #45a049; }
+        button:disabled { background-color: #555; cursor: not-allowed; }
+        canvas {
+            border: 2px solid #555;
+            image-rendering: pixelated; /* Mantém o aspecto de "zoom" sem borrar */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <label>
+            Imagem que será copiada (Origem / Alvo Visual):
+            <input type="file" id="origemInput" accept="image/*">
+        </label>
+        <label>
+            Imagem que será transformada (Alvo / Pixels Fonte):
+            <input type="file" id="alvoInput" accept="image/*">
+        </label>
+        <label>
+            Tamanho (recomendo 64 ou 128):
+            <input type="number" id="tamanhoInput" value="64">
+        </label>
+        <label>
+            Zoom:
+            <input type="number" id="zoomInput" value="4">
+        </label>
+        <button id="iniciarBtn">Iniciar Transformação</button>
+        <a id="downloadLink" style="display: none; color: #4CAF50; text-align: center;">Baixar saída.png</a>
+    </div>
+
+    <!-- Canvas equivalente à tela do Pygame -->
+    <canvas id="screenCanvas"></canvas>
+
+<script>
+    // EQUIVALENTE: def carregar_e_preparar(caminho, tamanho)
+    async function carregarEPreparar(file, tamanho) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = tamanho;
+                canvas.height = tamanho;
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+                const h = img.height;
+                const w = img.width;
+                const m = Math.min(h, w);
+
+                const x = Math.floor((w - m) / 2);
+                const y = Math.floor((h - m) / 2);
+
+                // Corta o quadrado central e redimensiona
+                ctx.drawImage(img, x, y, m, m, 0, 0, tamanho, tamanho);
+                
+                // Retorna os dados dos pixels (equivalente ao numpy array do cv2)
+                resolve(ctx.getImageData(0, 0, tamanho, tamanho));
+            };
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    // EQUIVALENTE: def gerar_transformacoes (rodando em uma Thread separada)
+    // Usamos um Blob para criar um Web Worker inline e não travar o navegador
+    const workerCode = `
+        self.onmessage = function(e) {
+            const { origemData, alvoData, tamanho } = e.data;
+            const numPixels = tamanho * tamanho;
+            const usados = new Uint8Array(numPixels);
+            
+            let chunk = []; // Equivalente à "Queue" (Fila) do Python
+
+            for (let i = 0; i < numPixels; i++) {
+                const r1 = origemData[i*4];
+                const g1 = origemData[i*4+1];
+                const b1 = origemData[i*4+2];
+
+                let minDist = Infinity;
+                let bestJ = -1;
+
+                for (let j = 0; j < numPixels; j++) {
+                    if (usados[j]) continue;
+
+                    const r2 = alvoData[j*4];
+                    const g2 = alvoData[j*4+1];
+                    const b2 = alvoData[j*4+2];
+
+                    // Distância Euclidiana (sem raiz quadrada para otimizar performance)
+                    const dist = (r1-r2)**2 + (g1-g2)**2 + (b1-b2)**2;
+
+                    if (dist < minDist) {
+                        minDist = dist;
+                        bestJ = j;
+                    }
+                }
+
+                usados[bestJ] = 1;
+                chunk.push(i, bestJ);
+
+                // Envia dados para renderização a cada 100 pixels calculados
+                if (chunk.length >= 200) {
+                    self.postMessage({ type: 'update', chunk: chunk });
+                    chunk = [];
+                }
+            }
+            // Envia o restante e sinaliza fim
+            self.postMessage({ type: 'done', chunk: chunk });
+        };
+    `;
+
+    document.getElementById('iniciarBtn').addEventListener('click', async () => {
+        const origemFile = document.getElementById('origemInput').files[0];
+        const alvoFile = document.getElementById('alvoInput').files[0];
+        const tamanho = parseInt(document.getElementById('tamanhoInput').value);
+        const zoom = parseInt(document.getElementById('zoomInput').value);
+
+        if (!origemFile || !alvoFile) {
+            alert("Por favor, selecione as duas imagens.");
+            return;
+        }
+
+        document.getElementById('iniciarBtn').disabled = true;
+        document.getElementById('downloadLink').style.display = 'none';
+
+        // Prepara as imagens
+        const origemImgData = await carregarEPreparar(origemFile, tamanho);
+        const alvoImgData = await carregarEPreparar(alvoFile, tamanho);
+
+        // EQUIVALENTE: Configuração inicial do Pygame
+        const screenCanvas = document.getElementById('screenCanvas');
+        screenCanvas.width = tamanho * zoom;
+        screenCanvas.height = tamanho * zoom;
+        const screenCtx = screenCanvas.getContext('2d');
+        screenCtx.imageSmoothingEnabled = false; // Mantém os pixels nítidos com o zoom
+
+        // Canvas auxiliar para armazenar a imagem parcial no tamanho original (1x)
+        const parcialCanvas = document.createElement('canvas');
+        parcialCanvas.width = tamanho;
+        parcialCanvas.height = tamanho;
+        const parcialCtx = parcialCanvas.getContext('2d');
+        const imagemParcialData = parcialCtx.createImageData(tamanho, tamanho);
+
+        // Preenche imagem_parcial com preto (np.zeros)
+        for(let i=0; i<imagemParcialData.data.length; i+=4) {
+            imagemParcialData.data[i+3] = 255; // Alpha 100%
+        }
+
+        // Inicializa a Thread (Web Worker)
+        const blob = new Blob([workerCode], { type: 'application/javascript' });
+        const worker = new Worker(URL.createObjectURL(blob));
+
+        worker.postMessage({
+            origemData: origemImgData.data,
+            alvoData: alvoImgData.data,
+            tamanho: tamanho
+        });
+
+        // EQUIVALENTE: O loop 'while not finalizado' recebendo da 'Queue'
+        worker.onmessage = function(e) {
+            const { type, chunk } = e.data;
+
+            // Processa a fila de transformações recebida da thread
+            for (let k = 0; k < chunk.length; k += 2) {
+                const idx = chunk[k];
+                const j = chunk[k+1];
+
+                imagemParcialData.data[idx*4] = alvoImgData.data[j*4];         // R
+                imagemParcialData.data[idx*4+1] = alvoImgData.data[j*4+1];     // G
+                imagemParcialData.data[idx*4+2] = alvoImgData.data[j*4+2];     // B
+                imagemParcialData.data[idx*4+3] = 255;                         // Alpha
+            }
+
+            // Atualiza a imagem parcial
+            parcialCtx.putImageData(imagemParcialData, 0, 0);
+
+            // EQUIVALENTE: pygame.transform.scale e blit
+            screenCtx.clearRect(0, 0, screenCanvas.width, screenCanvas.height);
+            screenCtx.drawImage(parcialCanvas, 0, 0, tamanho, tamanho, 0, 0, tamanho * zoom, tamanho * zoom);
+
+            if (type === 'done') {
+                worker.terminate();
+                document.getElementById('iniciarBtn').disabled = false;
+                
+                // EQUIVALENTE: cv2.imwrite("saida.png", imagem_parcial_bgr)
+                const downloadLink = document.getElementById('downloadLink');
+                downloadLink.href = parcialCanvas.toDataURL("image/png");
+                downloadLink.download = "saida.png";
+                downloadLink.style.display = 'block';
+                downloadLink.innerText = "Baixar saida.png (Processo Concluído)";
+            }
+        };
+    });
+</script>
+</body>
+</html>
