@@ -11,23 +11,16 @@
         background: #ddd;
         display: flex;
         flex-direction: column;
+        justify-content: center;
         align-items: center;
         font-family: Arial, sans-serif;
         touch-action: manipulation;
         overflow: hidden;
-        justify-content: center; /* horizontal */
-        align-items: center;     /* vertical */
     }
 
     html, body {
-        margin: 0;
         width: 100%;
         height: 100%;
-    }
-
-    p {
-        margin: 10px;
-        font-size: 18px;
     }
 
     canvas {
@@ -39,11 +32,13 @@
     }
 </style>
 </head>
+
 <body>
 
 <canvas id="game"></canvas>
 
 <script>
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -53,26 +48,35 @@ const TAMANHO = 50;
 const GRAVIDADE = 1.2;
 const FORCA_PULO = -18;
 
+// Detecta celular
+const celular = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 function ajustarCanvas() {
+
     const escala = Math.min(
         window.innerWidth / BASE_LARGURA,
         (window.innerHeight - 80) / BASE_ALTURA
     );
+
     canvas.width = BASE_LARGURA * escala;
     canvas.height = BASE_ALTURA * escala;
+
     ctx.setTransform(escala, 0, 0, escala, 0, 0);
 }
 
 ajustarCanvas();
+
 window.addEventListener("resize", ajustarCanvas);
 
-// Carregamento de Imagens
+// IMAGENS
 const jogadorSprites = [new Image(), new Image(), new Image()];
+
 jogadorSprites[0].src = "arquivos/1.png";
 jogadorSprites[1].src = "arquivos/2.png";
 jogadorSprites[2].src = "arquivos/3.png";
 
 const inimigoChaoSprites = [new Image(), new Image(), new Image()];
+
 inimigoChaoSprites[0].src = "arquivos/1.png";
 inimigoChaoSprites[1].src = "arquivos/2.png";
 inimigoChaoSprites[2].src = "arquivos/3.png";
@@ -80,37 +84,56 @@ inimigoChaoSprites[2].src = "arquivos/3.png";
 const inimigoVoador = new Image();
 inimigoVoador.src = "arquivos/4.png";
 
+// SOM
 const somPulo = new Audio("arquivos/smw_jump.wav");
 somPulo.volume = 0.6;
 
+// VARIÁVEIS
 let jogadorX = 10;
 let jogadorY = BASE_ALTURA - TAMANHO;
+
 let velocidadeY = 0;
+
 let frame = 0;
+
 let pulando = false;
 let jogando = false;
 let derrota = false;
+
 let pontos = 0;
 let numeroDoJogo = 1;
+
 let velocidade = 10;
+
 let obstaculoX = BASE_LARGURA;
 let obstaculoY = BASE_ALTURA - TAMANHO;
+
 let obstaculoVoadorX = BASE_LARGURA;
 let obstaculoVoadorY = BASE_ALTURA - TAMANHO * 2.1;
+
 let tipoObstaculo = true;
 
+// TECLADO
 document.addEventListener("keydown", e => {
+
     if (e.code === "KeyK") {
+
         if (!jogando) {
+
             jogando = true;
+
             if (derrota) {
+
                 pontos = 0;
                 numeroDoJogo++;
+
                 derrota = false;
+
                 obstaculoX = BASE_LARGURA;
                 obstaculoVoadorX = BASE_LARGURA;
             }
-            return; // Retorna para não pular no mesmo frame que inicia
+
+            return;
         }
     }
 
@@ -119,106 +142,262 @@ document.addEventListener("keydown", e => {
     }
 });
 
+// TOQUE
 canvas.addEventListener("touchstart", e => {
+
     e.preventDefault();
+
     if (!jogando) {
+
         jogando = true;
+
         if (derrota) {
+
             pontos = 0;
             numeroDoJogo++;
+
             derrota = false;
+
             obstaculoX = BASE_LARGURA;
             obstaculoVoadorX = BASE_LARGURA;
         }
+
         return;
     }
-    if (!pulando) pular();
+
+    if (!pulando) {
+        pular();
+    }
 });
 
 function pular() {
+
     pulando = true;
+
     velocidadeY = FORCA_PULO;
+
     somPulo.currentTime = 0;
-    somPulo.play().catch(() => {}); // Ignora erro se o áudio for bloqueado
+
+    somPulo.play().catch(() => {});
 }
 
 function colide(ax, ay, aw, ah, bx, by, bw, bh) {
-    return (ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by);
+
+    return (
+        ax < bx + bw &&
+        ax + aw > bx &&
+        ay < by + bh &&
+        ay + ah > by
+    );
 }
 
 function loop() {
+
     ctx.clearRect(0, 0, BASE_LARGURA, BASE_ALTURA);
 
     if (jogando) {
+
+        // PULO
         if (pulando) {
+
             velocidadeY += GRAVIDADE;
+
             jogadorY += velocidadeY;
+
             if (jogadorY >= BASE_ALTURA - TAMANHO) {
+
                 jogadorY = BASE_ALTURA - TAMANHO;
+
                 pulando = false;
+
                 velocidadeY = 0;
             }
         }
 
+        // MOVIMENTO DOS OBSTÁCULOS
         if (tipoObstaculo) {
             obstaculoX -= velocidade;
         } else {
             obstaculoVoadorX -= velocidade;
         }
 
-        if (obstaculoX < -TAMANHO || obstaculoVoadorX < -TAMANHO) {
+        // NOVO OBSTÁCULO
+        if (
+            obstaculoX < -TAMANHO ||
+            obstaculoVoadorX < -TAMANHO
+        ) {
+
             tipoObstaculo = Math.random() < 0.5;
+
             obstaculoX = BASE_LARGURA;
             obstaculoVoadorX = BASE_LARGURA;
+
             pontos++;
-            if(pontos % 5 === 0) velocidade += 0.5; // Aumenta dificuldade gradualmente
+
+            if (pontos % 5 === 0) {
+                velocidade += 0.5;
+            }
         }
 
+        // COLISÃO
         if (
-            colide(jogadorX, jogadorY, TAMANHO, TAMANHO, obstaculoX, obstaculoY, TAMANHO, TAMANHO) ||
-            colide(jogadorX, jogadorY, TAMANHO, TAMANHO, obstaculoVoadorX, obstaculoVoadorY, TAMANHO * 2.6, TAMANHO)
+
+            colide(
+                jogadorX,
+                jogadorY,
+                TAMANHO,
+                TAMANHO,
+                obstaculoX,
+                obstaculoY,
+                TAMANHO,
+                TAMANHO
+            )
+
+            ||
+
+            colide(
+                jogadorX,
+                jogadorY,
+                TAMANHO,
+                TAMANHO,
+                obstaculoVoadorX,
+                obstaculoVoadorY,
+                TAMANHO * 2.6,
+                TAMANHO
+            )
+
         ) {
+
             jogando = false;
             derrota = true;
+
             velocidade = 10;
         }
 
-        let spriteJogador = jogadorSprites[Math.floor(frame / 6) % 3];
-        ctx.drawImage(spriteJogador, jogadorX, jogadorY, TAMANHO, TAMANHO);
+        // JOGADOR
+        let spriteJogador =
+            jogadorSprites[Math.floor(frame / 6) % 3];
 
+        ctx.drawImage(
+            spriteJogador,
+            jogadorX,
+            jogadorY,
+            TAMANHO,
+            TAMANHO
+        );
+
+        // INIMIGO
         if (tipoObstaculo) {
-            let spriteInimigo = inimigoChaoSprites[Math.floor(frame / 6) % 3];
+
+            let spriteInimigo =
+                inimigoChaoSprites[Math.floor(frame / 6) % 3];
+
             ctx.save();
-            ctx.translate(obstaculoX + TAMANHO, obstaculoY);
+
+            ctx.translate(
+                obstaculoX + TAMANHO,
+                obstaculoY
+            );
+
             ctx.scale(-1, 1);
-            ctx.drawImage(spriteInimigo, 0, 0, TAMANHO, TAMANHO);
+
+            ctx.drawImage(
+                spriteInimigo,
+                0,
+                0,
+                TAMANHO,
+                TAMANHO
+            );
+
             ctx.restore();
+
         } else {
-            ctx.drawImage(inimigoVoador, obstaculoVoadorX, obstaculoVoadorY, TAMANHO * 2.6, TAMANHO);
+
+            ctx.drawImage(
+                inimigoVoador,
+                obstaculoVoadorX,
+                obstaculoVoadorY,
+                TAMANHO * 2.6,
+                TAMANHO
+            );
         }
 
+        // PONTOS
         ctx.fillStyle = "black";
         ctx.font = "bold 30px Arial";
-        ctx.fillText("Pontos: " + pontos, 20, 40);
+
+        ctx.fillText(
+            "Pontos: " + pontos,
+            20,
+            40
+        );
+
         frame++;
 
     } else {
+
         ctx.fillStyle = "black";
+
         ctx.textAlign = "center";
+
         ctx.font = "26px Arial";
-        ctx.fillText("Toque ou pressione K para iniciar", BASE_LARGURA/2, 200);
-        ctx.fillText("Toque ou precione ESPAÇO para pular", BASE_LARGURA/2, 300);
-        
-        if (derrota) {
-            ctx.fillStyle = "red";
-            ctx.font = "bold 30px Arial";
-            ctx.fillText(`FIM DE JOGO ${numeroDoJogo}!`, BASE_LARGURA/2, 100);
-            ctx.fillText(`Pontos: ${pontos}`, BASE_LARGURA/2, 140);
+
+        // TEXTO DIFERENTE PARA CELULAR E PC
+        if (celular) {
+
+            ctx.fillText(
+                "TOQUE para iniciar",
+                BASE_LARGURA / 2,
+                200
+            );
+
+            ctx.fillText(
+                "TOQUE para pular",
+                BASE_LARGURA / 2,
+                300
+            );
+
+        } else {
+
+            ctx.fillText(
+                "Pressione K para iniciar",
+                BASE_LARGURA / 2,
+                200
+            );
+
+            ctx.fillText(
+                "Pressione ESPAÇO para pular",
+                BASE_LARGURA / 2,
+                300
+            );
         }
-        
-        ctx.textAlign = "start"; // Reseta alinhamento
+
+        // GAME OVER
+        if (derrota) {
+
+            ctx.fillStyle = "red";
+
+            ctx.font = "bold 30px Arial";
+
+            ctx.fillText(
+                `FIM DE JOGO ${numeroDoJogo}!`,
+                BASE_LARGURA / 2,
+                100
+            );
+
+            ctx.fillText(
+                `Pontos: ${pontos}`,
+                BASE_LARGURA / 2,
+                140
+            );
+        }
+
+        ctx.textAlign = "start";
+
         jogadorY = BASE_ALTURA - TAMANHO;
+
         pulando = false;
+
         velocidadeY = 0;
     }
 
@@ -226,6 +405,7 @@ function loop() {
 }
 
 loop();
+
 </script>
 
 </body>

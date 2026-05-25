@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Gerador de QR Code</title>
+
+<style>
+    *{
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    body{
+        background: #111;
+        color: white;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .container{
+        width: 100%;
+        max-width: 500px;
+        background: #1e1e1e;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+    }
+
+    h1{
+        margin-bottom: 20px;
+        font-size: clamp(1.5rem, 4vw, 2.5rem);
+    }
+
+    input{
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        margin-bottom: 15px;
+    }
+
+    button{
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 10px;
+        background: #00aa55;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    button:hover{
+        background: #00cc66;
+    }
+
+    #qrcode{
+        margin-top: 25px;
+    }
+
+    #qrcode img{
+        width: 100%;
+        max-width: 300px;
+        border-radius: 10px;
+        background: white;
+        padding: 10px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Gerador de QR Code</h1>
+
+    <input
+        type="text"
+        id="texto"
+        placeholder="Digite um texto ou link"
+    >
+
+    <button onclick="gerarQR()">
+        Gerar QR Code
+    </button>
+
+    <div id="qrcode"></div>
+</div>
+
+<script>
+function gerarQR(){
+
+    const texto = document.getElementById("texto").value;
+    const divQR = document.getElementById("qrcode");
+
+    if(texto.trim() === ""){
+        alert("Digite algum texto.");
+        return;
+    }
+
+    const url =
+        "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data="
+        + encodeURIComponent(texto);
+
+    divQR.innerHTML = `
+        <img src="${url}" alt="QR Code">
+    `;
+}
+</script>
+
+</body>
+</html>
