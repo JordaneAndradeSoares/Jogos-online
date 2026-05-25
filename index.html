@@ -109,9 +109,23 @@ function abrirJogo(url){
 
     const container = document.getElementById("jogo");
 
-    container.innerHTML = `
-        <iframe src="${url}"></iframe>
-    `;
+    // verifica se o jogo já está aberto
+    if(container.dataset.jogo === url){
+
+        // fecha o jogo
+        container.innerHTML = "";
+
+        container.dataset.jogo = "";
+
+    } else {
+
+        // abre o novo jogo
+        container.innerHTML = `
+            <iframe src="${url}"></iframe>
+        `;
+
+        container.dataset.jogo = url;
+    }
 }
 
 </script>
