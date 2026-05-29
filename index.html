@@ -7,7 +7,6 @@
 <title>Jogos ONLINE</title>
 
 <style>
-
 *{
     margin: 0;
     padding: 0;
@@ -90,50 +89,81 @@ body{
     .sidebar{
         width: 100%;
         height: auto;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 10px;
+        gap: 10px;
     }
 
     .sidebar h1{
+        width: 100%;
         font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+
+    .sidebar button{
+        width: calc(50% - 10px);
+        padding: 12px;
+        font-size: 0.95rem;
     }
 
     .main{
-        height: 70vh;
+        height: auto;
+        padding: 10px;
+    }
+
+    .game-container{
+        height: calc(100dvh - 220px); /* aumenta espaço para o jogo */
+        border-radius: 15px;
     }
 }
 
+/* CELULARES MUITO PEQUENOS */
+@media (max-width: 500px){
+    .sidebar button{
+        width: 100%;
+    }
+
+    .game-container{
+        height: calc(100dvh - 420px);
+    }
+}
 </style>
 
 <script>
-
 function abrirJogo(url){
-
     const container = document.getElementById("jogo");
 
     // verifica se o jogo já está aberto
     if(container.dataset.jogo === url){
-
         // fecha o jogo
         container.innerHTML = "";
-
         container.dataset.jogo = "";
-
     } else {
+        // ajusta escala no mobile sem tocar no PC
+        const escala = window.innerWidth < 900 ? "scale(1.2)" : "scale(1)";
+        const width = window.innerWidth < 900 ? "83%" : "100%";
+        const height = window.innerWidth < 900 ? "83%" : "100%";
 
         // abre o novo jogo
         container.innerHTML = `
-            <iframe src="${url}"></iframe>
+            <iframe src="${url}"
+                style="
+                    transform:${escala};
+                    transform-origin: top left;
+                    width:${width};
+                    height:${height};
+                    border:none;
+                ">
+            </iframe>
         `;
-
         container.dataset.jogo = url;
     }
 }
-
 </script>
 
-<!-- MENU LATERAL -->
-
 </head>
-
 <body>
 
 <div class="sidebar">
@@ -183,11 +213,9 @@ function abrirJogo(url){
 </div>
 
 <div class="main">
-
-    <div class="game-container" id="jogo">
-
+    <div class="game-container" id="jogo" data-jogo="">
     </div>
-
 </div>
 
 </body>
+</html>
