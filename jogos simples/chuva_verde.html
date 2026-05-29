@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jogo de Plataforma Universal</title>
+    <style>
+        body { margin: 0; background-color: #333; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; touch-action: none; }
+        canvas { background-color: black; border: 2px solid white; max-width: 95vw; max-height: 70vh; }
+        .controles { display: flex; gap: 10px; margin-top: 10px; }
+        button { padding: 20px 30px; font-size: 18px; background: #555; color: white; border: none; border-radius: 10px; user-select: none; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div class="controles">
+        <button id="btnEsq">Esquerda</button>
+        <button id="btnPular">Pular</button>
+        <button id="btnDir">Direita</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const SCREEN_WIDTH = 800;
+        const SCREEN_HEIGHT = 600;
+        const player_size = 50;
+
+        let player_x = SCREEN_WIDTH / 2;
+        let player_y = SCREEN_HEIGHT / 2;
+        let player_vel_y = 0;
+        let pode_pular = false;
+        let pontos = 0;
+        let y2 = 0;
+        let x2 = Math.random() * (SCREEN_WIDTH - player_size);
+
+        const estadoControles = { esquerda: false, direita: false, pular: false };
+
+        // Função para registar eventos de rato E toque
+        function adicionarControlo(id, direcao) {
+            const btn = document.getElementById(id);
+            
+            // Rato
+            btn.addEventListener("mousedown", () => estadoControles[direcao] = true);
+            btn.addEventListener("mouseup", () => estadoControles[direcao] = false);
+            btn.addEventListener("mouseleave", () => estadoControles[direcao] = false);
+            
+            // Toque (Mobile)
+            btn.addEventListener("touchstart", (e) => { e.preventDefault(); estadoControles[direcao] = true; });
+            btn.addEventListener("touchend", (e) => { e.preventDefault(); estadoControles[direcao] = false; });
+        }
+
+        adicionarControlo("btnEsq", "esquerda");
+        adicionarControlo("btnDir", "direita");
+        adicionarControlo("btnPular", "pular");
+
+        function loop() {
+            player_vel_y += 1;
+            y2 += 5;
+
+            if (estadoControles.pular && pode_pular) {
+                player_vel_y = -15;
+                pode_pular = false;
+            }
+            if (estadoControles.direita) player_x += 7;
+            if (estadoControles.esquerda) player_x -= 7;
+
+            player_y += player_vel_y;
+            player_x = Math.max(0, Math.min(player_x, SCREEN_WIDTH - player_size));
+
+            const jogador = { x: player_x, y: player_y, w: player_size, h: player_size };
+            const terra = { x: 0, y: SCREEN_HEIGHT - player_size, w: SCREEN_WIDTH, h: player_size };
+            const plataforma = { x: SCREEN_WIDTH / 3, y: SCREEN_HEIGHT - player_size * 3, w: SCREEN_WIDTH / 3, h: player_size };
+            const outro = { x: x2, y: y2, w: player_size, h: player_size };
+
+            function colide(r1, r2) {
+                return r1.x < r2.x + r2.w && r1.x + r1.w > r2.x && r1.y < r2.y + r2.h && r1.y + r1.h > r2.y;
+            }
+
+            [plataforma, terra].forEach(plat => {
+                if (colide(jogador, plat)) {
+                    pode_pular = true;
+                    if (player_vel_y > 0) { player_y = plat.y - player_size; player_vel_y = 0; }
+                }
+            });
+
+            if (colide(jogador, outro)) { y2 = 0; x2 = Math.random() * (SCREEN_WIDTH - player_size); pontos += 1; }
+            if (y2 > SCREEN_HEIGHT || colide(outro, plataforma) || colide(outro, terra)) { y2 = 0; x2 = Math.random() * (SCREEN_WIDTH - player_size); }
+
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            ctx.fillStyle = "white";
+            ctx.fillRect(jogador.x, jogador.y, jogador.w, jogador.h);
+            ctx.fillRect(terra.x, terra.y, terra.w, terra.h);
+            ctx.fillRect(plataforma.x, plataforma.y, plataforma.w, plataforma.h);
+            ctx.fillStyle = "lime";
+            ctx.fillRect(outro.x, outro.y, outro.w, outro.h);
+            ctx.fillStyle = "white";
+            ctx.font = "40px Arial";
+            ctx.fillText("Pontos: " + pontos, 50, 50);
+
+            requestAnimationFrame(loop);
+        }
+        loop();
+    </script>
+</body>
+</html>
