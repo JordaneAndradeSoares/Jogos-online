@@ -7,6 +7,7 @@
 <title>Jogos ONLINE</title>
 
 <style>
+/* Estilos Globais */
 *{
     margin: 0;
     padding: 0;
@@ -17,32 +18,59 @@
 body{
     height: 100vh;
     display: flex;
+    flex-direction: column; /* Mobile first: empilhado na vertical */
     background-image: url('fundo.jpg');
-    background-size: 100px; /* Tamanho do padrão de repetição (imagem de fundo) */
+    background-size: 100px;
     background-repeat: repeat;
     background-position: center;
     background-attachment: fixed;
+    overflow: hidden;
 }
 
-/* MENU LATERAL */
-.sidebar{
-    width: 280px;
+/* MENU DE NAVEGAÇÃO (Mobile First) */
+.sidebar {
+    width: 100%;
     background: rgba(20,20,20,0.95);
     color: white;
-    padding: 25px;
-    overflow-y: auto;
+    padding: 10px 15px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap; /* Obriga a ficar na mesma linha para o scroll horizontal funcionar */
+    align-items: center;
+    gap: 15px;
+    overflow-x: auto;
+    scroll-behavior: smooth; /* Torna a movimentação da barra fluída */
+    transition: all 0.4s ease; /* Anima a mudança de PC para Telemóvel */
 }
 
-.sidebar h1{
-    margin-bottom: 25px;
-    text-align: center;
-    font-size: 2rem;
+/* Estilização da barra de rolagem para ficar elegante (Tema Aquamarine) */
+.sidebar::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: aquamarine;
+    border-radius: 10px;
 }
 
-.sidebar button{
-    width: 100%;
-    padding: 15px;
-    margin-bottom: 12px;
+.sidebar h1 {
+    font-size: 1.4rem;
+    margin: 0;
+    white-space: nowrap; /* Mantém o título intacto sem quebrar */
+}
+
+.botoes-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.sidebar button {
+    padding: 10px 18px;
     border: none;
     border-radius: 10px;
     background: aquamarine;
@@ -50,103 +78,119 @@ body{
     font-weight: bold;
     cursor: pointer;
     transition: 0.3s;
+    font-size: 0.9rem;
+    white-space: nowrap; /* Mantém o texto dentro do botão numa única linha */
+    flex-shrink: 0; /* Impede que os botões esmaguem uns aos outros */
 }
 
-.sidebar button:hover{
-    transform: scale(1.03);
+.sidebar button:hover, .sidebar button.ativo {
+    transform: scale(1.05);
     background: #5fffd2;
+    box-shadow: 0 0 10px rgba(95, 255, 210, 0.5); /* Efeito de brilho */
 }
 
 /* ÁREA DO JOGO */
-.main{
+.main {
     flex: 1;
-    padding: 20px;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.4s ease;
 }
 
-.game-container{
+.game-container {
     width: 100%;
     height: 100%;
     background: rgba(255,255,255,0.15);
     backdrop-filter: blur(5px);
-    border-radius: 20px;
+    border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
 
-.game-container iframe{
+.game-container iframe {
     width: 100%;
     height: 100%;
     border: none;
 }
 
-/* RESPONSIVIDADE */
-@media (max-width: 900px){
+/* RESPONSIVIDADE PARA DESKTOP (Ecrãs maiores que 768px) */
+@media (min-width: 768px) {
+    body {
+        flex-direction: row; /* Volta a lado a lado */
+    }
 
-    body{
+    .sidebar {
+        width: 280px;
+        height: 100vh;
         flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 25px;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
-    .sidebar{
-        width: 100%;
-        height: auto;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        padding: 10px;
-        gap: 10px;
-    }
-
-    .sidebar h1{
-        width: 100%;
-        font-size: 1.5rem;
-        margin-bottom: 5px;
-    }
-
-    .sidebar button{
-        width: calc(50% - 10px);
-        padding: 12px;
-        font-size: 0.95rem;
-    }
-
-    .main{
-        height: auto;
-        padding: 10px;
-    }
-
-    .game-container{
-        height: calc(100dvh - 220px); /* aumenta espaço para o jogo */
-        border-radius: 15px;
-    }
-}
-
-/* CELULARES MUITO PEQUENOS */
-@media (max-width: 500px){
-    .sidebar button{
+    .sidebar h1 {
+        font-size: 2rem;
+        margin: 0 0 25px 0;
+        text-align: center;
         width: 100%;
     }
 
-    .game-container{
-        height: calc(100dvh - 420px);
+    .botoes-container {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .sidebar button {
+        width: 100%;
+        padding: 15px;
+        margin-bottom: 12px;
+        font-size: 1rem;
+        white-space: normal; /* No PC o texto pode quebrar linha se for muito longo */
+    }
+
+    .main {
+        padding: 20px;
+    }
+
+    .game-container {
+        border-radius: 20px;
     }
 }
 </style>
 
 <script>
-function abrirJogo(url){
+function abrirJogo(url, btnElement) {
     const container = document.getElementById("jogo");
+    const botoes = document.querySelectorAll(".sidebar button");
 
-    // verifica se o jogo já está aberto
+    // Verifica se o jogo já está aberto
     if(container.dataset.jogo === url){
-        // fecha o jogo
+        // Fecha o jogo
         container.innerHTML = "";
         container.dataset.jogo = "";
+        botoes.forEach(b => b.classList.remove("ativo"));
     } else {
-        // ajusta escala no mobile sem tocar no PC
-        const escala = window.innerWidth < 900 ? "scale(1.2)" : "scale(1)";
-        const width = window.innerWidth < 900 ? "83%" : "100%";
-        const height = window.innerWidth < 900 ? "83%" : "100%";
+        // Remove destaque de todos e adiciona no clicado
+        botoes.forEach(b => b.classList.remove("ativo"));
+        
+        if(btnElement) {
+            btnElement.classList.add("ativo");
+            
+            // LÓGICA DE MOVIMENTAÇÃO AUTOMÁTICA
+            // Faz a barra rolar suavemente até o botão clicado (Centra o botão na tela)
+            btnElement.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
 
-        // abre o novo jogo
+        // Ajusta escala no mobile sem tocar no PC
+        const escala = window.innerWidth < 768 ? "scale(1.2)" : "scale(1)";
+        const width = window.innerWidth < 768 ? "83%" : "100%";
+        const height = window.innerWidth < 768 ? "83%" : "100%";
+
+        // Abre o novo jogo
         container.innerHTML = `
             <iframe src="${url}"
                 style="
@@ -161,55 +205,36 @@ function abrirJogo(url){
         container.dataset.jogo = url;
     }
 }
+
+// LÓGICA EXTRA: Permite usar a rodinha do rato para rolar a barra horizontal em janelas pequenas no PC
+document.addEventListener("DOMContentLoaded", () => {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.addEventListener('wheel', (evt) => {
+        if (window.innerWidth < 768) {
+            evt.preventDefault();
+            sidebar.scrollLeft += evt.deltaY; // Converte scroll vertical em horizontal
+        }
+    });
+});
 </script>
 
 </head>
 <body>
 
 <div class="sidebar">
-
     <h1>MEUS JOGOS</h1>
-
-    <button onclick="abrirJogo('amogus/amogus.html')">
-        Amogus
-    </button>
-
-    <button onclick="abrirJogo('sapo/sapo.html')">
-        Sapo
-    </button>
-
-    <button onclick="abrirJogo('jogos simples/nave.html')">
-        Nave Espacial
-    </button>
-    
-    <button onclick="abrirJogo('jogos simples/jogo_da_velha.html')">
-        Jogo da Velha
-    </button>
-
-    <button onclick="abrirJogo('jogos simples/transformador.html')">
-        Transformador de Imagens
-    </button>
-
-    <button onclick="abrirJogo('jogos simples/gerador_de_qrcode.html')">
-        Gerador de QRCode
-    </button>
-
-    <button onclick="abrirJogo('jogos simples/damas.html')">
-        Damas
-    </button>
-
-    <button onclick="abrirJogo('jogos simples/chuva_verde.html')">
-        Chuva verde
-    </button>
-
-    <button onclick="abrirJogo('jogos simples/queda.html')">
-        Queda
-    </button>
-
-    <button onclick="abrirJogo('jogos simples/portas_logicas.html')">
-        Portas Lógicas
-    </button>
-    
+    <div class="botoes-container">
+        <button onclick="abrirJogo('amogus/amogus.html', this)">Amogus</button>
+        <button onclick="abrirJogo('sapo/sapo.html', this)">Sapo</button>
+        <button onclick="abrirJogo('jogos simples/nave.html', this)">Nave Espacial</button>
+        <button onclick="abrirJogo('jogos simples/jogo_da_velha.html', this)">Jogo da Velha</button>
+        <button onclick="abrirJogo('jogos simples/transformador.html', this)">Transformador de Imagens</button>
+        <button onclick="abrirJogo('jogos simples/gerador_de_qrcode.html', this)">Gerador de QRCode</button>
+        <button onclick="abrirJogo('jogos simples/damas.html', this)">Damas</button>
+        <button onclick="abrirJogo('jogos simples/chuva_verde.html', this)">Chuva verde</button>
+        <button onclick="abrirJogo('jogos simples/queda.html', this)">Queda</button>
+        <button onclick="abrirJogo('jogos simples/portas_logicas.html', this)">Portas Lógicas</button>
+    </div>
 </div>
 
 <div class="main">
