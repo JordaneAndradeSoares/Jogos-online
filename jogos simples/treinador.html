@@ -2,111 +2,134 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Treinamento de Imagens no Browser</title>
+<title>Comparador de Imagens</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+<script async src="https://docs.opencv.org/4.x/opencv.js"></script>
 
 <style>
-body { font-family: Arial; text-align: center; }
-button { margin: 5px; padding: 10px; }
+body {
+    font-family: Arial;
+    text-align: center;
+    padding: 20px;
+}
+
+input, button {
+    margin: 10px;
+    padding: 10px;
+}
+
+#resultado {
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 20px;
+}
 </style>
 </head>
 
 <body>
 
-<h2>Treinamento simples de imagens (IA no navegador)</h2>
+<h2>Comparador de Imagens (Visão Computacional)</h2>
 
-<input type="file" id="imgInput">
+<input type="file" id="img1" accept="image/*"><br>
+<input type="file" id="img2" accept="image/*"><br>
 
-<br><br>
+<button onclick="comparar()">Comparar</button>
 
-<button onclick="treinar(0)">Treinar como CLASSE A</button>
-<button onclick="treinar(1)">Treinar como CLASSE B</button>
+<div id="resultado">Aguardando imagens...</div>
 
-<br><br>
-
-<button onclick="prever()">Prever imagem</button>
-
-<p id="status">Carregando modelo...</p>
+<canvas id="c1" hidden></canvas>
+<canvas id="c2" hidden></canvas>
 
 <script>
 
-let model;
-let embeddings = [];
-let labels = [];
-
-async function init(){
-    model = await mobilenet.load();
-    document.getElementById("status").innerText = "Modelo pronto!";
+function carregarImagem(file){
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.src = URL.createObjectURL(file);
+    });
 }
 
-init();
+async function comparar(){
 
-async function getTensor(img){
-    const tensor = tf.browser.fromPixels(img)
-        .resizeNearestNeighbor([224,224])
-        .toFloat()
-        .expandDims();
-
-    return model.infer(tensor, true); // vetor de features
-}
-
-async function treinar(label){
-
-    const file = document.getElementById("imgInput").files[0];
-    if(!file){
-        alert("Envie uma imagem");
+    if(typeof cv === "undefined"){
+        document.getElementById("resultado").innerText =
+            "OpenCV ainda carregando...";
         return;
     }
 
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
+    const f1 = document.getElementById("img1").files[0];
+    const f2 = document.getElementById("img2").files[0];
 
-    img.onload = async () => {
-
-        const emb = await getTensor(img);
-
-        embeddings.push(emb);
-        labels.push(label);
-
-        document.getElementById("status").innerText =
-            "Treinado! Total: " + embeddings.length;
-    };
-}
-
-async function prever(){
-
-    const file = document.getElementById("imgInput").files[0];
-    if(!file){
-        alert("Envie uma imagem para prever");
+    if(!f1 || !f2){
+        alert("Selecione duas imagens.");
         return;
     }
 
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
+    const img1 = await carregarImagem(f1);
+    const img2 = await carregarImagem(f2);
 
-    img.onload = async () => {
+    const c1 = document.getElementById("c1");
+    const c2 = document.getElementById("c2");
 
-        const emb = await getTensor(img);
+    const size = 300;
 
-        let melhorClasse = -1;
-        let melhorDist = Infinity;
+    c1.width = c2.width = size;
+    c1.height = c2.height = size;
 
-        for(let i=0;i<embeddings.length;i++){
+    c1.getContext("2d").drawImage(img1, 0, 0, size, size);
+    c2.getContext("2d").drawImage(img2, 0, 0, size, size);
 
-            const dist = tf.losses.cosineDistance(emb, embeddings[i], 0)
-                .dataSync()[0];
+    let src1 = cv.imread(c1);
+    let src2 = cv.imread(c2);
 
-            if(dist < melhorDist){
-                melhorDist = dist;
-                melhorClasse = labels[i];
-            }
+    let g1 = new cv.Mat();
+    let g2 = new cv.Mat();
+
+    cv.cvtColor(src1, g1, cv.COLOR_RGBA2GRAY);
+    cv.cvtColor(src2, g2, cv.COLOR_RGBA2GRAY);
+
+    let orb = new cv.ORB();
+
+    let kp1 = new cv.KeyPointVector();
+    let kp2 = new cv.KeyPointVector();
+
+    let des1 = new cv.Mat();
+    let des2 = new cv.Mat();
+
+    orb.detectAndCompute(g1, new cv.Mat(), kp1, des1);
+    orb.detectAndCompute(g2, new cv.Mat(), kp2, des2);
+
+    let matcher = new cv.BFMatcher(cv.NORM_HAMMING, true);
+
+    let matches = new cv.DMatchVector();
+
+    matcher.match(des1, des2, matches);
+
+    let bons = 0;
+
+    for(let i = 0; i < matches.size(); i++){
+
+        let m = matches.get(i);
+
+        if(m.distance < 50){
+            bons++;
         }
+    }
 
-        document.getElementById("status").innerText =
-            "Resultado: Classe " + (melhorClasse === 0 ? "A" : "B");
-    };
+    let total = Math.max(kp1.size(), kp2.size());
+
+    let similaridade = ((bons / total) * 100).toFixed(2);
+
+    document.getElementById("resultado").innerText =
+        "Similaridade: " + similaridade + "%";
+
+    // limpar memória
+    src1.delete(); src2.delete();
+    g1.delete(); g2.delete();
+    kp1.delete(); kp2.delete();
+    des1.delete(); des2.delete();
+    matches.delete();
 }
 
 </script>
