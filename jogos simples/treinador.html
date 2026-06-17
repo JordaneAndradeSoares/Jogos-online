@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Treinamento de Imagens no Browser</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+<style>
+body { font-family: Arial; text-align: center; }
+button { margin: 5px; padding: 10px; }
+</style>
+</head>
+
+<body>
+
+<h2>Treinamento simples de imagens (IA no navegador)</h2>
+
+<input type="file" id="imgInput">
+
+<br><br>
+
+<button onclick="treinar(0)">Treinar como CLASSE A</button>
+<button onclick="treinar(1)">Treinar como CLASSE B</button>
+
+<br><br>
+
+<button onclick="prever()">Prever imagem</button>
+
+<p id="status">Carregando modelo...</p>
+
+<script>
+
+let model;
+let embeddings = [];
+let labels = [];
+
+async function init(){
+    model = await mobilenet.load();
+    document.getElementById("status").innerText = "Modelo pronto!";
+}
+
+init();
+
+async function getTensor(img){
+    const tensor = tf.browser.fromPixels(img)
+        .resizeNearestNeighbor([224,224])
+        .toFloat()
+        .expandDims();
+
+    return model.infer(tensor, true); // vetor de features
+}
+
+async function treinar(label){
+
+    const file = document.getElementById("imgInput").files[0];
+    if(!file){
+        alert("Envie uma imagem");
+        return;
+    }
+
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+
+    img.onload = async () => {
+
+        const emb = await getTensor(img);
+
+        embeddings.push(emb);
+        labels.push(label);
+
+        document.getElementById("status").innerText =
+            "Treinado! Total: " + embeddings.length;
+    };
+}
+
+async function prever(){
+
+    const file = document.getElementById("imgInput").files[0];
+    if(!file){
+        alert("Envie uma imagem para prever");
+        return;
+    }
+
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+
+    img.onload = async () => {
+
+        const emb = await getTensor(img);
+
+        let melhorClasse = -1;
+        let melhorDist = Infinity;
+
+        for(let i=0;i<embeddings.length;i++){
+
+            const dist = tf.losses.cosineDistance(emb, embeddings[i], 0)
+                .dataSync()[0];
+
+            if(dist < melhorDist){
+                melhorDist = dist;
+                melhorClasse = labels[i];
+            }
+        }
+
+        document.getElementById("status").innerText =
+            "Resultado: Classe " + (melhorClasse === 0 ? "A" : "B");
+    };
+}
+
+</script>
+
+</body>
+</html>
