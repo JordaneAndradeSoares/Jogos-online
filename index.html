@@ -206,7 +206,7 @@ function abrirJogo(url, btnElement) {
     }
 }
 
-// LÓGICA EXTRA: Permite usar a rodinha do rato para rolar a barra horizontal em janelas pequenas no PC
+// LÓGICA EXTRA: Permite usar a rodinha do mouse para rolar a barra horizontal em janelas pequenas no PC
 document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.querySelector('.sidebar');
     sidebar.addEventListener('wheel', (evt) => {
@@ -236,6 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <button onclick="abrirJogo('jogos simples/portas_logicas.html', this)">Portas Lógicas</button>
         <button onclick="abrirJogo('jogos simples/treinador.html', this)">Comparador de Imagens</button>
         <button onclick="abrirJogo('jogos simples/jogo_da_vida.html', this)">Jogo da Vida</button>
+        <button onclick="abrirJogo('jogos simples/movimento.html', this)">Censor de movimento</button>
     </div>
 </div>
 
