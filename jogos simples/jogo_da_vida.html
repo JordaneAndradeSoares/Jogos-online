@@ -27,6 +27,9 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             border: 2px solid #bdc3c7;
             cursor: pointer;
+
+            max-width: 90vw; /* Garante que o canvas não ultrapasse a largura da tela */
+            height: auto;    /* Mantém a proporção correta ao encolher */
         }
 
         .controls {
@@ -78,7 +81,9 @@
         const btnClear = document.getElementById('btnClear');
 
         const resolution = 10;
-        canvas.width = 600;
+
+        // Tamanho do campo do jogo
+        canvas.width = 600; 
         canvas.height = 400;
 
         const COLS = canvas.width / resolution;

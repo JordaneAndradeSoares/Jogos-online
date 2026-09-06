@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Corrida 3D</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+        }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+        }
+        #game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #ff4444;
+        }
+        #game-over h1 { margin: 0 0 10px 0; color: #ff4444; }
+        #game-over button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #ff4444;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #game-over button:hover { background-color: #cc0000; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <div id="ui">Pontuação: <span id="score">0</span></div>
+
+    <div id="game-over">
+        <h1>FIM DE JOGO!</h1>
+        <p>Sua pontuação final foi: <span id="final-score">0</span></p>
+        <button onclick="restartGame()">Jogar Novamente</button>
+    </div>
+
+    <script>
+        // Configuração da Cena, Câmera e Renderizador
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xa0a0e0);
+        scene.fog = new THREE.Fog(0xa0a0e0, 20, 100);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Luzes
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(20, 40, 20);
+        scene.add(dirLight);
+
+        // Pista
+        const roadGeometry = new THREE.PlaneGeometry(12, 200);
+        const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+        const road = new THREE.Mesh(roadGeometry, roadMaterial);
+        road.rotation.x = -Math.PI / 2;
+        road.position.z = -80;
+        scene.add(road);
+
+        // Bordas da Pista
+        const borderGeo = new THREE.BoxGeometry(0.5, 0.5, 200);
+        const borderMat = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+        
+        const leftBorder = new THREE.Mesh(borderGeo, borderMat);
+        leftBorder.position.set(-6.25, 0.25, -80);
+        scene.add(leftBorder);
+
+        const rightBorder = new THREE.Mesh(borderGeo, borderMat);
+        rightBorder.position.set(6.25, 0.25, -80);
+        scene.add(rightBorder);
+
+        // Carro do Jogador
+        const playerGroup = new THREE.Group();
+        
+        const bodyGeo = new THREE.BoxGeometry(1.8, 0.8, 3.5);
+        const bodyMat = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 0.5;
+        playerGroup.add(body);
+
+        const cabinGeo = new THREE.BoxGeometry(1.4, 0.6, 1.8);
+        const cabinMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+        const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+        cabin.position.set(0, 1.1, -0.2);
+        playerGroup.add(cabin);
+
+        playerGroup.position.set(0, 0, 0);
+        scene.add(playerGroup);
+
+        // Configuração da Câmera relativa ao jogador
+        camera.position.set(0, 3, 6);
+        camera.lookAt(0, 1, -5);
+
+        // Variáveis de Controle e Estado
+        const keys = { ArrowLeft: false, ArrowRight: false, a: false, d: false };
+        const obstacles = [];
+        let score = 0;
+        let speed = 0.5;
+        let isGameOver = false;
+
+        // Comandos do Teclado
+        window.addEventListener('keydown', (e) => {
+            if (e.key in keys) keys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key in keys) keys[e.key] = false;
+        });
+
+        // Criar Obstáculos
+        function createObstacle() {
+            const obsGeo = new THREE.BoxGeometry(1.8, 1, 2);
+            const obsMat = new THREE.MeshLambertMaterial({ color: 0xff2222 });
+            const obstacle = new THREE.Mesh(obsGeo, obsMat);
+
+            // Posiciona em uma das 3 faixas (-4, 0, 4)
+            const lanes = [-4, 0, 4];
+            const randomLane = lanes[Math.floor(Math.random() * lanes.length)];
+
+            obstacle.position.set(randomLane, 0.5, -100);
+            scene.add(obstacle);
+            obstacles.push(obstacle);
+        }
+
+        // Loop Principal de Animação
+        let spawnTimer = 0;
+
+        function animate() {
+            if (isGameOver) return;
+
+            requestAnimationFrame(animate);
+
+            // Movimentação Lateral do Jogador
+            if ((keys.ArrowLeft || keys.a) && playerGroup.position.x > -4.5) {
+                playerGroup.position.x -= 0.15;
+            }
+            if ((keys.ArrowRight || keys.d) && playerGroup.position.x < 4.5) {
+                playerGroup.position.x += 0.15;
+            }
+
+            // Geração contínua de obstáculos
+            spawnTimer++;
+            if (spawnTimer > 40) {
+                createObstacle();
+                spawnTimer = 0;
+            }
+
+            // Atualização dos Obstáculos
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                obs.position.z += speed;
+
+                // Detecção de Colisão (Bounding Box simplificada)
+                const dx = Math.abs(playerGroup.position.x - obs.position.x);
+                const dz = Math.abs(playerGroup.position.z - obs.position.z);
+
+                if (dx < 1.5 && dz < 2.5) {
+                    endGame();
+                }
+
+                // Remover obstáculos que passaram da tela
+                if (obs.position.z > 10) {
+                    scene.remove(obs);
+                    obstacles.splice(i, 1);
+                    score += 10;
+                    document.getElementById('score').innerText = score;
+
+                    // Aumenta ligeiramente a velocidade com o tempo
+                    if (speed < 1.2) speed += 0.005;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Fim de Jogo
+        function endGame() {
+            isGameOver = true;
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('game-over').style.display = 'block';
+        }
+
+        // Reiniciar Jogo
+        function restartGame() {
+            // Limpa obstáculos existentes
+            obstacles.forEach(obs => scene.remove(obs));
+            obstacles.length = 0;
+
+            // Reseta variáveis
+            playerGroup.position.x = 0;
+            score = 0;
+            speed = 0.5;
+            spawnTimer = 0;
+            isGameOver = false;
+
+            document.getElementById('score').innerText = '0';
+            document.getElementById('game-over').style.display = 'none';
+
+            animate();
+        }
+
+        // Ajuste de Janela (Responsividade)
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Iniciar
+        animate();
+    </script>
+</body>
+</html>
