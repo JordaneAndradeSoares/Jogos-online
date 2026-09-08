@@ -19,7 +19,7 @@ const CARD_DATABASE = [
     { name: "Campo Defletor", type: "tecnologia", cost: 1, desc: "[Tecnologia] Outra criatura aliada recebe +2 DEF", art: "imagens/15.png", force: "Gravidade" },
 
     // Terrenos
-    { name: "Planície de Titânio", type: "terreno", cost: 2, atk: null, def: 5, desc: "[Terreno] Estrutura defensiva sem ataque.", art: "imagens/16.png", force: "Gravidade" },
+    { name: "Planície de Titânio", type: "terreno", cost: 2, atk: null, def: 5, desc: "", art: "imagens/16.png", force: "Gravidade" },
     { name: "Reator Instável", type: "terreno", cost: 3, atk: null, def: 4, desc: "[Ao Entrar] Causa 1 dano direto.", art: "imagens/17.png", force: "Força Forte" }
 ];
 

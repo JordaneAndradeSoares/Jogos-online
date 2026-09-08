@@ -1,19 +1,39 @@
-function generateLegalDeck() {
+function generateRandomDeckNames() {
     const pool = [];
-    if (typeof CARD_DATABASE === 'undefined' || !Array.isArray(CARD_DATABASE)) {
-        console.error('CARD_DATABASE não foi carregado!');
-        return [];
-    }
-
-    CARD_DATABASE.forEach(baseCard => {
-        for (let i = 0; i < 3; i++) pool.push(createCard(baseCard));
+    if (typeof CARD_DATABASE === 'undefined' || !Array.isArray(CARD_DATABASE)) return [];
+    CARD_DATABASE.forEach(card => {
+        for (let i = 0; i < 3; i++) pool.push(card.name);
     });
-
     shuffleArray(pool);
-    return pool.slice(0, Math.min(40, pool.length));
+    return pool.slice(0, 40);
 }
 
-function initGame() {
+function buildDeckFromNames(names) {
+    return names.map(name => {
+        const base = CARD_DATABASE.find(c => c.name === name);
+        return base ? createCard(base) : null;
+    }).filter(Boolean);
+}
+
+function generateLegalDeck() {
+    return generateRandomDeckNames();
+}
+
+function initGame(playerDeckNames, enemyDeckNames) {
+    // Sem decks escolhidos, não inicia uma partida automaticamente.
+    // A tela de montagem de deck é responsável por chamar initGame com 40 cartas.
+    if (!Array.isArray(playerDeckNames) || playerDeckNames.length !== 40) {
+        return false;
+    }
+    if (!Array.isArray(enemyDeckNames) || enemyDeckNames.length !== 40) {
+        enemyDeckNames = generateRandomDeckNames();
+    }
+
+    state.savedDecks = {
+        p1: [...playerDeckNames],
+        p2: [...enemyDeckNames]
+    };
+
     state.turn = 1;
     state.initiativeOwner = 'p1';
     state.consecutivePasses = 0;
@@ -24,13 +44,16 @@ function initGame() {
 
     state.players.p1 = {
         life: 20, energy: 1, maxEnergy: 1,
-        deck: generateLegalDeck(), hand: [], field: [], gy: []
+        deck: buildDeckFromNames(playerDeckNames), hand: [], field: [], gy: []
     };
 
     state.players.p2 = {
         life: 20, energy: 1, maxEnergy: 1,
-        deck: generateLegalDeck(), hand: [], field: [], gy: []
+        deck: buildDeckFromNames(enemyDeckNames), hand: [], field: [], gy: []
     };
+
+    shuffleArray(state.players.p1.deck);
+    shuffleArray(state.players.p2.deck);
 
     // Mão inicial de 7 cartas para cada jogador.
     for (let i = 0; i < 7; i++) {
@@ -39,6 +62,14 @@ function initGame() {
     }
 
     if (typeof renderUI === 'function') renderUI();
+    return true;
+}
+
+function restartGameSameDeck() {
+    if (!state.savedDecks || state.savedDecks.p1.length !== 40 || state.savedDecks.p2.length !== 40) return;
+    closeAllGameModals?.();
+    initGame([...state.savedDecks.p1], [...state.savedDecks.p2]);
+    showToast?.('Partida reiniciada com os mesmos decks.', 'success');
 }
 
 function sendCardToGraveyard(card, playerKey, isDestroyed = false) {

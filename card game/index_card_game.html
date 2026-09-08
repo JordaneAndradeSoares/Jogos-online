@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUANTUM FRONTIER — Sci-Fi Card Game</title>
+    <title>Card Game</title>
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/cards.css">
@@ -65,7 +65,9 @@
 
             <div class="controls">
                 <button id="pass-block-btn" class="action-btn" style="background-color: #e67e22; display: none;" onclick="passBlock()">Passar Bloqueio</button>
-                <button id="end-turn-btn" class="action-btn" onclick="endMyTurn()">Encerrar Turno (Passar a Vez)</button><button class="action-btn" onclick="openTutorial()">Tutorial</button>
+                <button id="end-turn-btn" class="action-btn" onclick="endMyTurn()">Encerrar Turno (Passar a Vez)</button><button class="action-btn" onclick="openDeckModal()">Meu Deck</button>
+                <button class="action-btn" onclick="restartGameSameDeck()">Recomeçar</button>
+                <button class="action-btn" onclick="openTutorial()">Tutorial</button>
             </div>
         </div>
 
@@ -100,6 +102,27 @@
             </div>
         </div>
     </div>
+
+<div id="deck-builder" style="position:fixed;inset:0;z-index:1000;background:#111827;color:white;overflow:auto;padding:25px;box-sizing:border-box;display:block;">
+  <div style="max-width:1100px;margin:0 auto;">
+    <h2>Monte seu deck</h2>
+    <p>Escolha exatamente <b>40 cartas</b>. Você pode usar no máximo <b>3 cópias</b> de cada carta.</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px;">
+      <button class="action-btn" onclick="randomizePlayerDeck()">Escolher 40 aleatoriamente</button>
+      <span id="deck-builder-count">0 / 40</span>
+    </div>
+    <div id="deck-builder-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;"></div>
+    <div style="margin-top:20px;text-align:center;">
+      <button id="start-game-btn" class="action-btn" onclick="startGameFromBuilder()" disabled>Começar a partida</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="deck-modal">
+  <h3 style="color:white;">Meu Deck</h3>
+  <div id="deck-modal-cards" style="max-height:65vh;overflow:auto;"></div>
+  <button class="action-btn" style="margin-top:15px;background:#636e72;" onclick="closeDeckModal()">Fechar</button>
+</div>
 
     <!-- Modais -->
     <div class="modal" id="play-modal">
@@ -144,6 +167,7 @@
     <script src="js/ui.combat.js"></script>
     <script src="js/ui.cards.js"></script>
     <script src="js/ui.actions.js"></script>
+    <script src="js/deck.builder.js"></script>
     <script src="js/ui.render.js"></script>
 <div class="modal" id="tutorial-modal"><h3 style="color:white;">Regras do jogo</h3><pre id="tutorial-content" class="tutorial-content"></pre><button class="action-btn" onclick="closeTutorial()">Fechar</button></div></body>
 </html>

@@ -218,7 +218,7 @@ Exemplo:
 
 — / 5
 
-O símbolo "—" significa que a carta não possui atributo de ataque.
+O símbolo "—" significa que a carta não possui atributo de ataque (ataque NULO).
 
 Portanto:
 - ATK nulo não significa ATK 0.

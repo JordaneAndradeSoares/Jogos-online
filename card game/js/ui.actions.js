@@ -180,4 +180,3 @@ function closeModal() {
     document.getElementById('play-modal').style.display = 'none';
     state.selectedCardIndex = null;
 }
-

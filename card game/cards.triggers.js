@@ -1,8 +1,3 @@
-/*
- * Gatilhos das cartas no universo sci-fi.
- * tecnologia = carta tecnológica é usada.
- * aoEntrar = unidade entra no campo.
- */
 const CardTriggers = {
     "Pulso Incendiário": { tecnologia: c => CardEffects.damageOpponent(c, 3) },
     "Arco Elétrico": { tecnologia: c => CardEffects.damageOpponent(c, 2) },

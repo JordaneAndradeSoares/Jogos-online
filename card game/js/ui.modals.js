@@ -117,4 +117,3 @@ function closeAttackModal() {
     selectedCardToAttackIndex = null;
     if (typeof renderUI === 'function') renderUI();
 }
-

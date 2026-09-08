@@ -19,6 +19,7 @@
     .controls { gap: 6px; }
     .action-btn { padding: 8px 6px; font-size: 10px; }
 }
+
 @media (max-width: 900px) and (orientation: portrait) {
     .game-container, #combat-svg, #toast-container { display:none !important; }
     #rotate-device { display:flex; position:fixed; inset:0; padding:24px; align-items:center; justify-content:center; text-align:center; background:#2d3436; color:#fff; z-index:20000; font-size:18px; line-height:1.5; }
