@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUANTUM FRONTIER — Sci-Fi Card Game</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/cards.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <div id="rotate-device">🔄 Gire o celular para a horizontal para jogar.</div>
+
+    <!-- Container para notificações -->
+    <div id="toast-container"></div>
+
+    <!-- SVG Overlay para desenhar a linha de combate entre as cartas -->
+    <svg id="combat-svg"></svg>
+
+    <div class="game-container">
+        <!-- Header / Coluna Lateral (agora com os botões e altura ajustada) -->
+        <div class="header">
+            <div class="stats-table">
+                <div class="stat-row header-row">
+                    <div class="p1-col">Você (P1)</div>
+                    <div class="label-col">Atributo</div>
+                    <div class="p2-col">Inimigo (P2)</div>
+                </div>
+                <div class="stat-row">
+                    <div class="p1-col"><span id="p1-life">20</span></div>
+                    <div class="label-col">Vida</div>
+                    <div class="p2-col"><span id="p2-life">20</span></div>
+                </div>
+                <div class="stat-row">
+                    <div class="p1-col"><span id="p1-energy">1</span>/<span id="p1-max">1</span></div>
+                    <div class="label-col">Energia</div>
+                    <div class="p2-col"><span id="p2-energy">1</span>/<span id="p2-max">1</span></div>
+                </div>
+                <div class="stat-row">
+                    <div class="p1-col"><span id="p1-deck-count">40</span></div>
+                    <div class="label-col">Deck</div>
+                    <div class="p2-col"><span id="p2-deck-count">40</span></div>
+                </div>
+                <div class="stat-row">
+                    <div class="p1-col"><span id="p1-hand-count">8</span></div>
+                    <div class="label-col">Mão</div>
+                    <div class="p2-col"><span id="p2-hand-count">4</span></div>
+                </div>
+            </div>
+
+            <div class="turn-info">
+                <h2>Número do turno: <span id="turn-display">1</span></h2>
+                <div class="initiative-badge" id="initiative-display">Sua Vez</div>
+            </div>
+
+            <div class="force-legend">
+                <div class="game-subtitle">FORÇAS FUNDAMENTAIS:</div>
+                <div><span class="legend-orb electromagnetism"></span>Eletromagnetismo</div>
+                <div><span class="legend-orb gravity"></span>Gravidade</div>
+                <div><span class="legend-orb strong-force"></span>Força Forte</div>
+                <div><span class="legend-orb weak-force"></span>Força Fraca</div>
+            </div>
+
+            <div class="controls">
+                <button id="pass-block-btn" class="action-btn" style="background-color: #e67e22; display: none;" onclick="passBlock()">Passar Bloqueio</button>
+                <button id="end-turn-btn" class="action-btn" onclick="endMyTurn()">Encerrar Turno (Passar a Vez)</button><button class="action-btn" onclick="openTutorial()">Tutorial</button>
+            </div>
+        </div>
+
+        <!-- Conteúdo Principal do Jogo ao lado -->
+        <div class="main-content">
+            <div class="board">
+                <!-- Área do Inimigo (Topo) -->
+                <div class="player-area" id="area-p2">
+                    <div style="font-size: 12px; color: #b2bec3; margin-bottom: 5px;">CAMPO DE BATALHA INIMIGO</div>
+                    <div class="zones-container">
+                        <div class="gy-zone" onclick="openGraveyardModal('p2')" title="Clique para ver o cemitério">
+                            <div style="font-size: 11px; margin-bottom: 5px;">ARQUIVO P2</div>
+                            <div id="p2-gy"></div>
+                        </div>
+                        <div class="field-zone" id="p2-field"></div>
+                    </div>
+                </div>
+
+                <!-- Sua Área (Baixo) -->
+                <div class="player-area active-area" id="area-p1">
+                    <div style="font-size: 12px; color: #b2bec3; margin-bottom: 5px;">SEU CAMPO DE BATALHA</div>
+                    <div class="zones-container">
+                        <div class="gy-zone" onclick="openGraveyardModal('p1')" title="Clique para ver o cemitério">
+                            <div style="font-size: 11px; margin-bottom: 5px;">ARQUIVO P1</div>
+                            <div id="p1-gy"></div>
+                        </div>
+                        <div class="field-zone" id="p1-field"></div>
+                    </div>
+                    <div style="font-size: 12px; color: #b2bec3; margin-top: 5px;">SUA RESERVA</div>
+                    <div class="hand-zone" id="p1-hand"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modais -->
+    <div class="modal" id="play-modal">
+        <h3 style="color:white;">Como deseja implantar esta carta?</h3>
+        <div class="modal-content">
+            <button class="action-btn" onclick="confirmPlay(false)">Implantar Ativa (Pagar Custo)</button>
+            <button class="action-btn" onclick="confirmPlay(true)">Implantar Oculta (Custo 0, 0/1)</button>
+            <button class="action-btn" style="background: #d63031;" onclick="closeModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <div class="modal" id="discard-modal">
+        <h3 style="color:white;" id="discard-modal-title">Deseja ejetar esta carta?</h3>
+        <div class="modal-content">
+            <button class="action-btn" style="background-color: #d63031;" onclick="confirmDiscard()">Sim, Ejetar</button>
+            <button class="action-btn" style="background-color: #636e72;" onclick="closeDiscardModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <div class="modal" id="gy-modal">
+        <h3 style="color:white; margin-bottom: 10px;" id="gy-modal-title">Arquivo de Unidades</h3>
+        <div class="gy-modal-content" id="gy-modal-cards"></div>
+        <button class="action-btn" style="margin-top: 15px; background: #636e72;" onclick="closeGraveyardModal()">Fechar</button>
+    </div>
+
+    <div class="modal" id="attack-modal">
+        <h3 style="color:white;" id="attack-modal-title">Iniciar ataque com esta unidade?</h3>
+        <div class="modal-content">
+            <button class="action-btn" style="background-color: #d63031;" onclick="confirmAttack()">Sim, Atacar</button>
+            <button class="action-btn" style="background-color: #636e72;" onclick="closeAttackModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <script src="cards.database.js"></script>
+    <script src="cards.effects.js"></script>
+    <script src="cards.triggers.js"></script>
+    <script src="js/core.state.js"></script>
+    <script src="js/core.cards.js"></script>
+    <script src="js/core.turns.js"></script>
+    <script src="enemy.ia.js"></script>
+    <script src="js/ui.modals.js"></script>
+    <script src="js/ui.combat.js"></script>
+    <script src="js/ui.cards.js"></script>
+    <script src="js/ui.actions.js"></script>
+    <script src="js/ui.render.js"></script>
+<div class="modal" id="tutorial-modal"><h3 style="color:white;">Regras do jogo</h3><pre id="tutorial-content" class="tutorial-content"></pre><button class="action-btn" onclick="closeTutorial()">Fechar</button></div></body>
+</html>

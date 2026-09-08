@@ -1,0 +1,286 @@
+QUANTUM FRONTIER — REGRAS DO JOGO
+
+1. OBJETIVO DO JOGO
+
+O objetivo é reduzir a vida do jogador inimigo a 0.
+
+Cada jogador começa a partida com 20 pontos de vida.
+
+Um jogador também perde se precisar comprar uma carta e não possuir mais cartas no deck.
+
+
+2. TIPOS DE CARTA
+
+O jogo possui três tipos principais de carta:
+
+CRIATURAS
+- Possuem custo, ataque e defesa.
+- Podem atacar o jogador inimigo.
+- Podem participar de combates.
+- Podem possuir efeitos descritos na própria carta.
+
+TECNOLOGIAS
+- Possuem custo e efeitos.
+- Não possuem ataque ou defesa.
+- Seus efeitos são aplicados conforme a descrição da carta.
+
+TERRENOS
+- Possuem custo e defesa.
+- Seu ataque é NULO, representado pelo símbolo: —.
+- Não podem atacar.
+- Não são tratados como criaturas.
+- Podem possuir efeitos.
+- Alguns efeitos podem ser ativados ao entrar em campo.
+
+
+3. DECK E MÃO INICIAL
+
+Cada jogador utiliza um deck de cartas.
+
+No início da partida:
+- Os jogadores começam com suas vidas completas.
+- Os decks são embaralhados.
+- Cada jogador compra 7 cartas para formar sua mão inicial.
+
+Sempre que um jogador precisar comprar uma carta e o seu deck estiver vazio, ele perde a partida.
+
+
+4. ENERGIA
+
+As cartas possuem um custo de energia.
+
+Para jogar uma carta normalmente:
+- O jogador deve possuir energia suficiente.
+- A quantidade de energia igual ao custo da carta é gasta.
+- A carta é colocada em campo ou tem seu efeito aplicado, dependendo do seu tipo.
+
+A energia máxima aumenta durante a partida conforme as regras do sistema de turnos.
+
+
+5. JOGANDO CARTAS
+
+CRIATURAS
+
+As criaturas podem ser implantadas ativamente ou, quando permitido pelo jogo, ocultas.
+
+Uma criatura implantada ativamente:
+- Paga seu custo normal.
+- Entra em campo com seus atributos e efeitos normais.
+
+Uma criatura implantada ocultamente:
+- Fica virada para baixo.
+- Possui comportamento especial enquanto estiver oculta.
+- Pode ser revelada posteriormente conforme as regras do jogo.
+
+TECNOLOGIAS
+
+As tecnologias são jogadas para utilizar seus efeitos.
+
+Elas não permanecem no campo como criaturas e não possuem atributos de ataque e defesa.
+
+TERRENOS
+
+Os terrenos:
+- São jogados em campo pagando seu custo normal.
+- Possuem ataque nulo.
+- Possuem defesa.
+- Não podem atacar.
+- Podem possuir efeitos especiais.
+
+
+6. CARTAS VIRADAS PARA BAIXO
+
+Uma carta virada para baixo esconde sua identidade do adversário.
+
+Para o jogador proprietário:
+- Ao passar o mouse sobre sua própria carta oculta, o visual verdadeiro da carta é mostrado temporariamente na própria carta.
+- Quando o mouse sai da carta, ela volta ao visual virado para baixo.
+
+Para o adversário:
+- A carta permanece desconhecida.
+- O adversário não pode ver o nome, imagem ou efeito da carta oculta.
+
+
+7. ATAQUE
+
+Apenas criaturas podem atacar.
+
+Para atacar:
+- A criatura deve estar em campo.
+- A criatura não pode estar descansando.
+- A criatura deve estar apta para realizar a ação conforme seu estado no jogo.
+
+Terrenos não podem atacar porque possuem ataque nulo.
+
+
+8. DESCANSO
+
+Uma criatura pode ficar descansando após determinadas ações.
+
+Uma criatura descansando:
+- Não pode atacar.
+- Não pode defender ou bloquear ataques.
+
+Quando uma criatura está descansando, o jogo deve impedir sua seleção como atacante ou defensora.
+
+
+9. DEFESA E BLOQUEIO
+
+Quando ocorre um ataque, o jogador defensor pode utilizar cartas válidas para bloquear.
+
+Uma criatura só pode bloquear se:
+- Estiver em campo.
+- Não estiver destruída.
+- Não estiver descansando.
+- Estiver apta a defender.
+
+Criaturas descansando não podem ser usadas como bloqueadoras.
+
+Terrenos não atacam e não são utilizados como criaturas atacantes.
+
+
+10. COMBATE
+
+Quando uma criatura ataca uma criatura inimiga:
+
+- O ataque é comparado com a defesa da criatura atingida.
+- A defesa atual da carta é reduzida pelo dano recebido.
+- Uma carta cuja defesa chega a 0 ou menos é destruída.
+- Cartas destruídas são enviadas para o arquivo/cemitério do jogador.
+
+Alguns efeitos podem causar dano diretamente ao jogador inimigo.
+
+
+11. VIDA
+
+Cada jogador começa com 20 pontos de vida.
+
+Um jogador perde quando sua vida chega a 0 ou menos.
+
+Dano direto reduz a vida do jogador atingido.
+
+Efeitos de reparo ou cura podem restaurar vida quando permitido pela carta.
+
+
+12. EFEITOS DAS CARTAS
+
+As cartas podem possuir efeitos especiais descritos em seu texto.
+
+Exemplos de efeitos incluem:
+- Aumentar ataque.
+- Aumentar defesa.
+- Causar dano a uma criatura.
+- Causar dano direto ao jogador inimigo.
+- Restaurar vida.
+- Restaurar defesa.
+- Destruir cartas.
+- Aplicar modificadores temporários ou permanentes.
+
+Os efeitos devem ser resolvidos conforme o texto e os gatilhos da carta.
+
+
+13. EFEITOS "AO ENTRAR"
+
+Algumas cartas possuem efeitos com o gatilho:
+
+[Ao Entrar]
+
+Esse efeito é ativado quando a carta entra em campo de forma válida.
+
+Exemplo:
+[Ao Entrar] +1 ATK
+
+Nesse caso, a criatura recebe o bônus indicado ao entrar em campo.
+
+
+14. ATAQUE E DEFESA DOS TERRENOS
+
+Os terrenos utilizam o símbolo:
+
+— / DEFESA
+
+Exemplo:
+
+— / 5
+
+O símbolo "—" significa que a carta não possui atributo de ataque.
+
+Portanto:
+- Ataque nulo não significa ataque 0.
+- O terreno não pode atacar.
+- O terreno continua possuindo defesa.
+- O terreno pode possuir efeitos especiais.
+
+
+15. FORÇAS FUNDAMENTAIS
+
+As cartas pertencem a uma das forças fundamentais:
+
+- Eletromagnetismo
+- Gravidade
+- Força Forte
+- Força Fraca
+
+A força é uma característica visual e temática das cartas e pode ser utilizada por efeitos específicos do jogo.
+
+
+16. DESTRUIÇÃO E ARQUIVO
+
+Quando uma carta é destruída:
+- Ela deixa o campo.
+- É enviada para o arquivo/cemitério de seu proprietário.
+- Seus estados de campo deixam de ser utilizados.
+
+O jogador pode visualizar as cartas presentes em seu arquivo através da área correspondente.
+
+
+17. TURNOS
+
+Os jogadores se alternam durante a partida.
+
+Durante seu turno, o jogador pode:
+- Jogar cartas, caso possua energia suficiente.
+- Atacar com criaturas aptas.
+- Utilizar ações permitidas pelo estado atual do jogo.
+- Encerrar o turno.
+
+Ao encerrar o turno, a vez passa para o outro jogador.
+
+
+18. INTELIGÊNCIA ARTIFICIAL
+
+O jogador inimigo é controlado pela inteligência artificial.
+
+A IA avalia, entre outras possibilidades:
+- Cartas que pode jogar.
+- Custo das cartas.
+- Força das criaturas.
+- Defesa das unidades.
+- Possíveis ataques.
+- Possíveis bloqueios.
+
+A IA não deve utilizar cartas que estejam descansando para atacar ou defender.
+
+
+19. FIM DA PARTIDA
+
+A partida termina quando ocorre uma das seguintes situações:
+
+- A vida de um jogador chega a 0.
+- Um jogador precisa comprar uma carta, mas seu deck está vazio.
+- Outra condição de vitória ou derrota definida por um efeito do jogo acontece.
+
+O jogador que permanecer em uma condição válida vence a partida.
+
+
+20. RESUMO RÁPIDO
+
+1. Comece com 20 de vida.
+2. Cada jogador recebe 7 cartas na mão inicial.
+3. Jogue cartas usando energia.
+4. Use criaturas para atacar.
+5. Criaturas descansando não podem atacar nem defender.
+6. Terrenos possuem ataque nulo (—) e não podem atacar.
+7. Defenda usando criaturas aptas.
+8. Reduza a vida inimiga a 0 para vencer.
+9. Não fique sem cartas quando precisar comprar, ou perderá a partida.

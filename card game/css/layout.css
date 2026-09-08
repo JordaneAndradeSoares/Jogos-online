@@ -1,0 +1,44 @@
+.board {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.player-area {
+    background: #636e7230;
+    border: 2px solid #636e72;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.active-area { border-color: #00b894; }
+
+.zones-container {
+    display: flex;
+    gap: 10px;
+}
+
+.field-zone {
+    flex: 1;
+    display: flex;
+    gap: 10px;
+    min-height: 120px;
+    background: #00000020;
+    border-radius: 6px;
+    padding: 5px;
+    align-items: center;
+    overflow-x: auto;
+}
+
+.hand-zone {
+    display: flex;
+    gap: 10px;
+    min-height: 110px;
+    background: #00000020;
+    border-radius: 6px;
+    padding: 5px;
+    margin-top: 5px;
+    overflow-x: auto;
+}
+

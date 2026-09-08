@@ -1,0 +1,25 @@
+.game-container{max-width:1120px}.card{width:104px;height:156px}.face-down-preview{display:none;position:absolute;left:50%;bottom:105%;transform:translateX(-50%);width:210px;padding:10px;background:#07101e;color:#fff;border:1px solid #00e5ff;z-index:100;font-size:11px;line-height:1.4}.own-face-down:hover .face-down-preview{display:block}.tutorial-content{max-width:min(760px,90vw);max-height:65vh;overflow:auto;white-space:pre-wrap;color:#dbeafe;background:#07101e;border:1px solid #315078;padding:16px;line-height:1.5;font-size:13px}@media(max-width:768px){body{padding:8px}.game-container{flex-direction:column;gap:8px}.header{max-width:none;padding:10px}.force-legend{display:none}.controls{flex-direction:row}.board{padding:6px}.player-area{padding:6px}.gy-zone{width:68px;min-height:125px}.field-zone,.hand-zone{gap:6px;min-height:145px}.card{width:82px;height:123px}.card-top-section{font-size:8px;height:20px}.card-bottom-section{height:42px;font-size:7px}.card-cost-circle{width:20px;height:20px;font-size:9px}.face-down-preview{display:none!important}}
+
+/* O jogo foi projetado para celulares em modo paisagem. */
+#rotate-device { display:none; }
+@media (max-width: 900px) and (orientation: landscape) {
+    body { padding: 6px; min-height: 100vh; }
+    .game-container { max-width: 100%; gap: 8px; }
+    .header { max-width: 190px; padding: 10px; }
+    .header h2 { font-size: 14px; }
+    .force-legend { display: none; }
+    .card { width: 72px; height: 108px; border-width: 2px; }
+    .field-zone { min-height: 112px; gap: 4px; padding: 4px; }
+    .hand-zone { min-height: 112px; gap: 4px; padding: 4px; }
+    .gy-zone { min-width: 55px; width: 55px; }
+    .card-top-section { font-size: 7px; height: 18px; border-width: 2px; }
+    .card-bottom-section { font-size: 6px; height: 36px; border-width: 2px; }
+    .card-cost-circle { width: 18px; height: 18px; font-size: 8px; border-width: 2px; }
+    .card-stats-box { font-size: 8px; border-width: 2px; }
+    .controls { gap: 6px; }
+    .action-btn { padding: 8px 6px; font-size: 10px; }
+}
+@media (max-width: 900px) and (orientation: portrait) {
+    .game-container, #combat-svg, #toast-container { display:none !important; }
+    #rotate-device { display:flex; position:fixed; inset:0; padding:24px; align-items:center; justify-content:center; text-align:center; background:#2d3436; color:#fff; z-index:20000; font-size:18px; line-height:1.5; }
+}

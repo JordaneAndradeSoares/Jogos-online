@@ -1,0 +1,439 @@
+.gy-status {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 4px 8px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 5;
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.card-attacking {
+    border: 3px solid #ffcc00 !important;
+    box-shadow: 0 0 15px #ffcc00;
+    transform: scale(1.05);
+    transition: all 0.2s ease-in-out;
+    z-index: 10;
+}
+
+.card-attacked {
+    border: 3px solid #ff3333 !important;
+    box-shadow: 0 0 15px #ff3333;
+    transform: scale(0.95);
+    transition: all 0.2s ease-in-out;
+    z-index: 10;
+}
+
+.gy-zone {
+    position: relative;
+    overflow: visible;
+    width: 130px;
+    min-height: 195px;
+    background: #00000040;
+    border: 1px dashed #b2bec3;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.gy-zone:hover {
+    background: #00000070;
+    border-color: #0984e3;
+}
+
+.graveyard-container, #p1-gy, #p2-gy {
+    position: relative;
+    width: 130px; 
+    height: 195px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    overflow: visible !important;
+    background: rgba(0, 0, 0, 0.2);
+}
+/* ===== Feedback de combate e estado ===== */
+.card-attacking {
+    border: 4px solid #ffd166 !important;
+    box-shadow: 0 0 0 3px rgba(255, 209, 102, .35), 0 0 22px rgba(255, 209, 102, .9);
+    transform: translateY(-7px) scale(1.06);
+    z-index: 20;
+}
+
+.card-attacked {
+    border: 4px solid #ef476f !important;
+    box-shadow: 0 0 0 3px rgba(239, 71, 111, .3), 0 0 22px rgba(239, 71, 111, .85);
+    transform: scale(.97);
+    z-index: 19;
+}
+
+.possible-blocker {
+    border-color: #4dabf7 !important;
+    box-shadow: 0 0 12px rgba(77,171,247,.65);
+    cursor: pointer;
+}
+
+.combat-label {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .5px;
+    color: #fff;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.combat-attacker-label {
+    top: 24px;
+    background: #d63031;
+}
+
+.face-down {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+    color: white;
+    padding: 12px 8px !important;
+    background:
+        repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0 8px, transparent 8px 16px),
+        #111827 !important;
+    border: 3px solid #64748b !important;
+    box-shadow: inset 0 0 0 2px #1e293b, 0 5px 12px rgba(0,0,0,.35);
+    cursor: pointer;
+}
+
+.face-down-title {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.face-down-symbol {
+    font-size: 54px;
+    line-height: 1;
+    opacity: .85;
+}
+
+.face-down-stats {
+    font-size: 18px;
+    font-weight: 900;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    padding: 3px 8px;
+}
+
+.face-down-hint {
+    font-size: 9px;
+    opacity: .8;
+}
+
+.force-badge {
+    margin-top: 3px;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+    padding: 2px 4px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    display: inline-block;
+    background: #f1f2f6;
+}
+
+.cb-marker.stunned {
+    background: #6c5ce7;
+    color: white;
+    border: 2px solid #fff;
+}
+
+/* =========================================================
+   QUANTUM FRONTIER — interface sci-fi
+   ========================================================= */
+:root {
+    --sci-bg: #050914;
+    --sci-panel: #0a1222;
+    --sci-panel-2: #0f1b30;
+    --sci-line: #263b5c;
+    --sci-cyan: #00e5ff;
+    --sci-purple: #a855f7;
+    --sci-red: #ff3b3b;
+    --sci-green: #39e75f;
+    --sci-text: #dbeafe;
+}
+
+body {
+    background:
+        radial-gradient(circle at 15% 20%, rgba(0,229,255,.10), transparent 28%),
+        radial-gradient(circle at 85% 80%, rgba(168,85,247,.10), transparent 30%),
+        linear-gradient(135deg, #02040b 0%, var(--sci-bg) 48%, #080b19 100%);
+    color: var(--sci-text);
+    font-family: "Segoe UI", Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: .16;
+    background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(to bottom, black, transparent 90%);
+}
+
+.game-container { max-width: 1400px; gap: 16px; }
+
+.header {
+    max-width: 285px;
+    background: linear-gradient(180deg, rgba(10,18,34,.96), rgba(4,9,20,.96));
+    border: 1px solid var(--sci-line);
+    border-radius: 4px;
+    box-shadow: 0 0 30px rgba(0,229,255,.07), inset 0 0 25px rgba(0,229,255,.025);
+    position: relative;
+}
+
+.header::before {
+    position: absolute;
+    top: 7px;
+    right: 12px;
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    color: var(--sci-cyan);
+}
+
+.game-logo {
+    color: #fff;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-shadow: 0 0 12px rgba(0,229,255,.55);
+}
+
+.game-subtitle {
+    margin: 3px 0 12px;
+    font-size: 8px;
+    letter-spacing: 1.2px;
+    color: #7dd3fc;
+}
+
+.turn-info h2 { color: #f8fafc; font-size: 17px; }
+
+.force-legend {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #203451;
+    background: rgba(5,12,25,.75);
+    font-size: 9px;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+}
+
+.force-legend > div { display: flex; align-items: center; gap: 7px; margin: 6px 0; }
+
+.legend-orb, .force-orb {
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 9px currentColor;
+}
+
+.electromagnetism, .force-Eletromagnetismo .force-orb { color: var(--sci-cyan); background: var(--sci-cyan); }
+.gravity, .force-Gravidade .force-orb { color: var(--sci-purple); background: var(--sci-purple); }
+.strong-force, .force-ForçaForte .force-orb { color: var(--sci-red); background: var(--sci-red); }
+.weak-force, .force-ForçaFraca .force-orb { color: var(--sci-green); background: var(--sci-green); }
+
+.force-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: fit-content;
+    margin: 4px auto 0;
+    padding: 3px 7px;
+    border: 1px solid #29415f;
+    border-radius: 999px;
+    background: rgba(3,8,18,.78);
+    color: #cbd5e1;
+    font-size: 7px;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+}
+
+.board {
+    background: radial-gradient(circle at center, rgba(20,36,62,.38), rgba(3,7,16,.78));
+    border: 1px solid #1d304d;
+    padding: 12px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 60px rgba(0,0,0,.35);
+}
+
+.player-area > div:first-child {
+    color: #67e8f9 !important;
+    letter-spacing: 1.5px;
+}
+
+.field-zone, .hand-zone, .gy-zone {
+    border-color: #263b5c !important;
+    background: rgba(5,12,24,.55) !important;
+}
+
+.card {
+    background: linear-gradient(160deg, #101d32, #07101e) !important;
+    border: 1px solid #426083 !important;
+    border-radius: 3px !important;
+    box-shadow: 0 0 0 1px rgba(0,229,255,.04), 0 8px 22px rgba(0,0,0,.5) !important;
+}
+
+.card:hover {
+    border-color: var(--sci-cyan) !important;
+    box-shadow: 0 0 18px rgba(0,229,255,.18) !important;
+}
+
+.card-top-section {
+    background: linear-gradient(90deg, #0b1729, #142642) !important;
+    color: #e0f2fe !important;
+    border-bottom: 1px solid #29415f !important;
+    letter-spacing: .5px;
+}
+
+.card-img-box {
+    background: #030712 !important;
+    border-color: #203451 !important;
+}
+
+.card-bottom-section {
+    background: #081322 !important;
+    color: #b9c9dd !important;
+}
+
+.card-stats-box {
+    background: #020617 !important;
+    border-color: #355070 !important;
+    color: #f8fafc !important;
+}
+
+.card-cost-circle {
+    background: #0b1220 !important;
+    border-color: var(--sci-cyan) !important;
+    color: #fff !important;
+    box-shadow: 0 0 8px rgba(0,229,255,.25);
+}
+
+.modal {
+    background: linear-gradient(180deg, #0c1729, #040912) !important;
+    border: 1px solid #315078 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 0 45px rgba(0,229,255,.16) !important;
+}
+
+.action-btn {
+    border-radius: 3px !important;
+    border: 1px solid #3b638f !important;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+.face-down {
+    background: repeating-linear-gradient(135deg, #050914 0, #050914 8px, #0b1730 8px, #0b1730 16px) !important;
+    border-color: var(--sci-cyan) !important;
+    box-shadow: 0 0 16px rgba(0,229,255,.12) !important;
+}
+
+.face-down-title { color: var(--sci-cyan) !important; letter-spacing: 2px; }
+.face-down-symbol { color: #e0f2fe; text-shadow: 0 0 15px rgba(0,229,255,.5); }
+
+
+/* =========================================================
+   POSICIONAMENTO DOS ATRIBUTOS DAS CARTAS
+   Força = canto inferior esquerdo
+   Ataque / Defesa = canto inferior direito
+   ========================================================= */
+.card {
+    position: relative;
+}
+
+.card-bottom-section {
+    position: relative !important;
+}
+
+.card-stats-box {
+    position: absolute !important;
+    right: 3px !important;
+    bottom: 3px !important;
+    left: auto !important;
+    margin: 0 !important;
+    z-index: 5 !important;
+    min-width: 38px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.force-dot {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    display: block;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-sizing: border-box;
+    z-index: 6;
+}
+
+.force-electromagnetismo {
+    background: #00e5ff !important;
+    box-shadow: 0 0 9px #00e5ff;
+}
+
+.force-gravidade {
+    background: #9b59ff !important;
+    box-shadow: 0 0 9px #9b59ff;
+}
+
+.force-forte {
+    background: #ff3030 !important;
+    box-shadow: 0 0 9px #ff3030;
+}
+
+.force-fraca {
+    background: #39d353 !important;
+    box-shadow: 0 0 9px #39d353;
+}
+
+
+/* Atordoamento: somente no campo, indicado por uma borda/brilho laranja ao redor da carta. */
+.card.stunned {
+    border: 3px solid #ff8c00 !important;
+    box-shadow:
+        0 0 6px rgba(255, 140, 0, 0.95),
+        0 0 16px rgba(255, 140, 0, 0.75),
+        0 0 28px rgba(255, 140, 0, 0.45) !important;
+    filter: saturate(1.08);
+}
+
+/* O estado de atordoada não usa mais a faixa roxa antiga. */
+.cb-marker.stunned {
+    display: none !important;
+}
+

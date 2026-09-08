@@ -1,0 +1,309 @@
+.card {
+    position: relative;
+    width: 120px;
+    height: 180px;
+    background: white;
+    border: 4px solid black;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+    gap: 4px;
+    color: black;
+    font-family: sans-serif;
+    user-select: none;
+    flex-shrink: 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+}
+
+.card:hover { transform: translateY(-5px); }
+
+.card.face-down {
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    border: 2px solid #fff;
+}
+
+.card-top-section {
+    position: relative;
+    border: 3px solid black;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    padding-left: 4px;
+    font-weight: bold;
+    font-size: 11px;
+    background: white;
+}
+
+.card-cost-circle {
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 3px solid black;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    z-index: 2;
+}
+
+.card-img-box {
+    flex: 1;
+    border: 3px solid black;
+    overflow: hidden;
+    background: #eee;
+}
+
+.card-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-bottom-section {
+    position: relative;
+    height: 60px;
+    border: 3px solid black;
+    padding: 4px;
+    font-size: 9px;
+    background: white;
+    overflow: hidden;
+}
+
+.card-stats-box {
+    position: absolute;
+    right: -6px;
+    bottom: -6px;
+    border: 3px solid black;
+    background: white;
+    padding: 2px 6px;
+    font-weight: bold;
+    font-size: 12px;
+    z-index: 2;
+}
+
+.cb-marker { 
+    background: #fdcb6e; 
+    color: black; 
+    font-size: 9px; 
+    padding: 2px 3px; 
+    border-radius: 8px; 
+    text-align: center; 
+    font-weight: bold;
+}
+
+.cb-marker.stunned { 
+    background-color: #6c5ce7; 
+    color: white; 
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.action-btn {
+    width: 100%;
+    padding: 10px;
+    background: #0984e3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+}
+
+.action-btn:hover { opacity: 0.9; }
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 10000;
+}
+
+.modal-content {
+    display: flex;
+    gap: 10px;
+}
+
+.gy-modal-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 500px;
+    max-height: 60vh;
+    overflow-y: auto;
+    justify-content: center;
+    background: rgba(0,0,0,0.5);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.stats-table {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 12px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    align-items: center;
+}
+
+.header-row {
+    font-weight: bold;
+    color: #b2bec3;
+    border-bottom: 1px solid #636e72;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+}
+
+.p1-col {
+    color: #00b894;
+    text-align: right;
+    min-width: 65px;
+    font-weight: bold;
+}
+
+.p2-col {
+    color: #d63031;
+    text-align: left;
+    min-width: 65px;
+    font-weight: bold;
+}
+
+.label-col {
+    text-align: center;
+    color: #dfe6e9;
+    min-width: 55px;
+}
+
+
+/* Prévia visual completa da carta própria virada para baixo */
+.own-face-down {
+    overflow: visible;
+}
+
+.card-face-preview {
+    position: absolute;
+    z-index: 10050;
+    left: 50%;
+    bottom: calc(100% + 12px);
+    transform: translateX(-50%) scale(0.9);
+    transform-origin: bottom center;
+    width: 180px;
+    height: 270px;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.82);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+
+.own-face-down:hover .card-face-preview {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) scale(1);
+}
+
+.card-preview-card {
+    width: 100%;
+    height: 100%;
+    cursor: default;
+    transform: none !important;
+}
+
+.card-preview-card:hover {
+    transform: none !important;
+}
+
+.card-preview-card .card-top-section {
+    font-size: 14px;
+    height: 32px;
+}
+
+.card-preview-card .card-bottom-section {
+    height: 78px;
+    font-size: 11px;
+}
+
+.card-preview-card .card-stats-box {
+    font-size: 14px;
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    .card-face-preview {
+        width: 150px;
+        height: 225px;
+        bottom: auto;
+        top: 50%;
+        left: calc(100% + 10px);
+        transform: translateY(-50%) scale(0.9);
+        transform-origin: left center;
+    }
+
+    .own-face-down:hover .card-face-preview {
+        transform: translateY(-50%) scale(1);
+    }
+}
+
+/* Conteúdo verdadeiro da carta oculta do jogador */
+.card-real-content {
+    display: none;
+    width: 100%;
+    height: 100%;
+}
+
+/* Ao passar o mouse sobre uma carta oculta do jogador */
+.card.own-face-down:hover .card-hidden-content {
+    display: none;
+}
+
+.card.own-face-down:hover .card-real-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+/* Quando estiver mostrando o conteúdo verdadeiro */
+.card.own-face-down:hover {
+    background: white;
+    border: 4px solid black;
+    color: black;
+}
+
+/* A carta revelada temporariamente usa todo o espaço disponível */
+.card-real-content .card-top-section,
+.card-real-content .card-img-box,
+.card-real-content .card-bottom-section {
+    flex-shrink: 0;
+}
+
+.card-real-content .card-img-box {
+    flex: 1;
+}
+
+.stat-up{color:#18a558;font-weight:700;}
+.stat-down{color:#d62828;font-weight:700;}

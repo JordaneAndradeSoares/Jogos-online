@@ -1,0 +1,115 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #2d3436;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: stretch; /* Força a coluna lateral a ter exatamente a mesma altura do campo ao lado */
+    width: 100%;
+    max-width: 1200px;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 15px;
+}
+
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    background: rgba(45, 52, 54, 0.95);
+    color: #fff;
+    padding: 12px 18px;
+    border-left: 5px solid #0984e3;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    font-size: 13px;
+    font-weight: bold;
+    animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.5s forwards;
+    max-width: 320px;
+    pointer-events: auto;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+#combat-svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+#combat-svg line {
+    stroke: #ff7675;
+    stroke-width: 4;
+    stroke-linecap: round;
+    filter: drop-shadow(0px 0px 8px #d63031);
+    stroke-dasharray: 8;
+    animation: dash 0.8s linear infinite;
+}
+
+@keyframes dash {
+    to { stroke-dashoffset: -16; }
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Distribui os blocos preenchendo toda a altura da coluna */
+    align-items: center;
+    width: 100%;
+    max-width: 250px;
+    background: #00000040;
+    padding: 20px;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.turn-info { text-align: center; }
+
+.initiative-badge {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: #00b894;
+    margin-top: 4px;
+    display: inline-block;
+}
+
