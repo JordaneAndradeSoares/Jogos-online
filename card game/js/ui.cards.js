@@ -28,10 +28,22 @@ function getCardStatsHTML(card) {
 }
 
 function getFullCardContent(card) {
+    // Uma carta virada para baixo custa 0 para ser colocada,
+    // mas ao visualizá-la o jogador deve enxergar seu custo original.
+    const displayCost = card.isFaceDown
+        ? (card._faceDownOriginalCost ?? card.baseCost ?? card.cost)
+        : (card.custoAtual ?? card.cost);
+    const displayBaseCost = card.custoBase ?? card.baseCost ?? displayCost;
+    const costClass = displayCost < displayBaseCost
+        ? 'stat-up'
+        : displayCost > displayBaseCost
+            ? 'stat-down'
+            : '';
+
     return `
         <div class="card-top-section">
             ${card.name}
-            <div class="card-cost-circle ${((card.custoAtual ?? card.cost) < (card.custoBase ?? card.cost)) ? 'stat-up' : ((card.custoAtual ?? card.cost) > (card.custoBase ?? card.cost)) ? 'stat-down' : ''}">${card.custoAtual ?? card.cost}</div>
+            <div class="card-cost-circle ${costClass}">${displayCost}</div>
         </div>
 
         <div class="card-img-box">
@@ -93,7 +105,7 @@ function buildCardHTML(card, owner, zone, index) {
                 <div class="face-down-symbol">?</div>
 
                 <div class="face-down-stats">
-                    ${card.type === 'terreno' ? '— / 1' : '0 / 1'}
+                    0 / 1
                 </div>
 
                 <div class="face-down-hint">

@@ -16,7 +16,7 @@ const CARD_DATABASE = [
     { name: "Criatura 14", type: "criatura", cost: 2, atk: 1, def: 4, desc: "[Destruído] Causa 1 dano direto", gatilho: "destruido", art: "imagens/14.png", force: "Força Forte" },
     { name: "Criatura 15", type: "criatura", cost: 3, atk: 2, def: 5, desc: "", art: "imagens/15.png", force: "Força Fraca" },
     { name: "Criatura 16", type: "criatura", cost: 4, atk: 3, def: 6, desc: "[Ativo] +1 ATK", gatilho: "ativo", art: "imagens/16.png", force: "Eletromagnetismo" },
-    { name: "Criatura 17", type: "criatura", cost: 5, atk: 4, def: 7, desc: "[Destruído] Causa 2 dano direto", gatilho: "destruido", art: "imagens/17.png", force: "Gravidade" },
+    { name: "Criatura 17", type: "criatura", cost: 5, atk: 4, def: 7, desc: "[Destruído] +2 DEF", gatilho: "destruido", art: "imagens/17.png", force: "Gravidade" },
     { name: "Criatura 18", type: "criatura", cost: 6, atk: 5, def: 2, desc: "[Campo] Causa 1 dano direto", gatilho: "campo", art: "imagens/18.png", force: "Força Forte" },
     { name: "Criatura 19", type: "criatura", cost: 1, atk: 6, def: 3, desc: "[Ativo] Restaura 1 de vida", gatilho: "ativo", art: "imagens/19.png", force: "Força Fraca" },
     { name: "Criatura 20", type: "criatura", cost: 2, atk: 7, def: 4, desc: "", art: "imagens/20.png", force: "Eletromagnetismo" },

@@ -26,10 +26,23 @@ function handleCardClick(owner, zone, index) {
             }
 
             if (card.isFaceDown) {
+                const revealCost = Number(card._faceDownOriginalCost ?? card.baseCost ?? card.cost) || 0;
+                if (player.energy < revealCost) {
+                    showToast(`Energia insuficiente para revelar ${card.name}! Custo: ${revealCost}.`, "error");
+                    return;
+                }
+                player.energy -= revealCost;
                 card.isFaceDown = false;
-                card.currentDef = card.def ?? card.baseDef ?? 1;
+                card.cost = revealCost;
+                card.atk = card._faceDownOriginalAtk ?? card.atk;
+                card.def = card._faceDownOriginalDef ?? card.def;
+                card.currentDef = card._faceDownOriginalCurrentDef ?? card.def ?? card.baseDef ?? 1;
+                delete card._faceDownOriginalCost;
+                delete card._faceDownOriginalAtk;
+                delete card._faceDownOriginalDef;
+                delete card._faceDownOriginalCurrentDef;
                 card.summonedTurn = card.summonedTurn || state.turn;
-                showToast(`${card.name} foi revelada para bloquear!`, "info");
+                showToast(`${card.name} foi revelada para bloquear! Custo pago: ${revealCost}.`, "info");
             }
 
             const attackerCard = state.activeAttack.attackerCard;
@@ -96,21 +109,29 @@ function handleCardClick(owner, zone, index) {
             const card = player.field[index];
             
             if (card.isFaceDown) {
-                if (player.energy >= card.cost) {
-                    player.energy -= card.cost;
-                    card.isFaceDown = false;
-                    card._activeStatApplied = false;
-                    card._activeTickedTurn = null;
-                    card.currentDef = card.def;
-                    card.summonedTurn = card.summonedTurn || state.turn;
-                    card.casusBelli = 0;
+                const revealCost = Number(card._faceDownOriginalCost ?? card.baseCost ?? card.cost) || 0;
+                if (player.energy < revealCost) {
+                    showToast(`Energia insuficiente para revelar ${card.name}! Custo: ${revealCost}.`, "error");
+                    return;
+                }
+                player.energy -= revealCost;
+                card.isFaceDown = false;
+                card.cost = revealCost;
+                card.atk = card._faceDownOriginalAtk ?? card.atk;
+                card.def = card._faceDownOriginalDef ?? card.def;
+                card._activeStatApplied = false;
+                card._activeTickedTurn = null;
+                card.currentDef = card._faceDownOriginalCurrentDef ?? card.def;
+                delete card._faceDownOriginalCost;
+                delete card._faceDownOriginalAtk;
+                delete card._faceDownOriginalDef;
+                delete card._faceDownOriginalCurrentDef;
+                card.summonedTurn = card.summonedTurn || state.turn;
+                card.casusBelli = 0;
                     triggerEffect('campo', card, { owner: 'p1', card: card });
                     if (card.gatilho === 'ativo') triggerEffect('ativo', card, { owner: 'p1', card: card });
                     showToast(`${card.name} foi revelada. Ela não pode atacar neste turno.`, "info");
                     registerActionDone('p1');
-                } else {
-                    showToast("Energia insuficiente para revelar a carta!", "error");
-                }
             } else {
                 if (card.type !== 'criatura') return;
                 if (card.isStunned) {
@@ -143,7 +164,7 @@ function confirmPlay(faceDown) {
     const player = state.players.p1;
     const card = player.hand[index];
 
-    if (faceDown && card.type !== 'criatura') { showToast('Apenas criaturas podem ser implantadas ocultas.', 'warning'); faceDown = false; }
+    if (faceDown && card.type !== 'criatura' && card.type !== 'terreno') { showToast('Apenas criaturas e terrenos podem ser jogados para baixo.', 'warning'); return; }
 
     if (!faceDown && player.energy < card.cost) {
         showToast("Energia insuficiente!", "error");
@@ -160,8 +181,16 @@ function confirmPlay(faceDown) {
         showToast(`Você usou a Mágica ${card.name}!`, "success");
     } else {
         if (faceDown) {
-            card.isFaceDown = true;
+            // Carta oculta sempre é implantada por 0 de energia e fica 0/1 enquanto oculta.
+            card._faceDownOriginalCost = card.cost;
+            card._faceDownOriginalAtk = card.atk;
+            card._faceDownOriginalDef = card.def;
+            card._faceDownOriginalCurrentDef = card.currentDef;
+            card.cost = 0;
+            card.atk = 0;
+            card.def = 1;
             card.currentDef = 1;
+            card.isFaceDown = true;
             card.isResting = true;
             card.summonedTurn = state.turn;
             player.field.push(card);

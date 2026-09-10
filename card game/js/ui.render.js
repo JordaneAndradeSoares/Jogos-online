@@ -166,13 +166,13 @@ A energia máxima aumenta durante a partida conforme o sistema de turnos do jogo
 
 CRIATURAS
 
-As criaturas podem ser implantadas ativamente ou, quando permitido, ocultas.
+Criaturas e terrenos podem ser jogados ativamente ou para baixo.
 
 Uma criatura implantada ativamente:
 - Paga seu custo normal.
 - Entra em campo com seus atributos e efeitos normais.
 
-Uma criatura implantada ocultamente:
+Uma criatura ou terreno jogado para baixo:
 - Fica virada para baixo.
 - Sua identidade fica escondida do adversário.
 - Pode ser revelada posteriormente, inclusive quando for usada para bloquear um ataque.
@@ -204,7 +204,7 @@ Para o adversário:
 - A carta permanece desconhecida.
 - O adversário não pode ver o nome, imagem ou efeito da carta oculta enquanto ela permanecer virada para baixo.
 
-Uma criatura virada para baixo pode ser utilizada como bloqueadora quando estiver apta a bloquear. Ao bloquear, ela é revelada e seu ATK/DEF real passa a ser utilizado no combate.
+Uma criatura ou terreno virado para baixo pode ser utilizado como bloqueador quando estiver apta a bloquear. Ao bloquear, ela é revelada e seu ATK/DEF real passa a ser utilizado no combate.
 
 7. ATAQUE
 
@@ -239,7 +239,7 @@ Quando ocorre um ataque, o jogador defensor pode utilizar cartas válidas para b
 
 PODEM BLOQUEAR:
 - Criaturas prontas e aptas a defender.
-- Criaturas viradas para baixo que estejam aptas a bloquear.
+- Criaturas e terrenos virados para baixo que estejam aptos a bloquear.
 - Terrenos, desde que estejam em campo e disponíveis para bloquear.
 
 NÃO PODEM BLOQUEAR:
@@ -249,7 +249,7 @@ NÃO PODEM BLOQUEAR:
 - Criaturas atordoadas ou impedidas por efeitos.
 - Cartas que estejam indisponíveis por alguma regra do jogo.
 
-Ao utilizar uma criatura virada para baixo como bloqueadora, ela é revelada no momento do bloqueio.
+Ao utilizar uma criatura ou terreno virado para baixo como bloqueador, ela é revelada no momento do bloqueio.
 
 Um terreno pode bloquear, mas seu ATK continua sendo nulo (—). Portanto, um terreno pode receber dano do atacante, mas não causa dano de combate de volta por meio de ataque.
 
@@ -395,7 +395,7 @@ A IA avalia, entre outras possibilidades:
 A IA deve seguir as mesmas regras do jogador:
 - Não pode agir enquanto estiver com mais de 8 cartas na mão e com descarte obrigatório pendente.
 - Não deve utilizar cartas descansando para atacar ou defender.
-- Pode utilizar criaturas viradas para baixo como bloqueadoras quando estiverem aptas.
+- Pode utilizar criaturas e terrenos virados para baixo como bloqueadores quando estiverem aptos.
 - Pode utilizar terrenos como bloqueadores.
 - Terrenos controlados pela IA não podem atacar.
 
@@ -419,7 +419,7 @@ O jogador que permanecer em uma condição válida vence a partida.
 6. Apenas criaturas podem atacar.
 7. Criaturas descansando não podem atacar nem bloquear.
 8. Criaturas e terrenos podem bloquear quando estiverem aptos.
-9. Cartas viradas para baixo podem bloquear e são reveladas ao bloquear.
+9. Criaturas e terrenos podem ser jogados para baixo. Cartas viradas para baixo custam 0, possuem 0/1 e podem bloquear; ao bloquear, são reveladas.
 10. Terrenos possuem ATK nulo (—), não atacam e não causam dano de combate.
 11. A DEF atual das cartas é restaurada ao valor original no fim do ciclo de turno.
 12. ATK/DEF aumentados aparecem em verde; ATK/DEF reduzidos aparecem em vermelho.

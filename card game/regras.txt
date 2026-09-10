@@ -195,22 +195,18 @@ Exemplos de efeitos incluem:
 
 Os efeitos devem ser resolvidos conforme o texto e os gatilhos da carta.
 
-13. GATILHOS DOS EFEITOS
+13. EFEITOS "AO ENTRAR"
 
-Todos os efeitos das cartas utilizam somente um destes gatilhos:
+Algumas cartas possuem efeitos com o gatilho:
 
-[Campo]
-- Ativa quando a carta entra em campo virada para cima.
-- Também ativa quando uma carta que já está no campo é virada para cima.
+[Ao Entrar]
 
-[Destruído]
-- Ativa quando a carta é destruída e enviada ao cemitério.
-- O efeito é resolvido antes de a carta deixar definitivamente o campo, permitindo que ele use informações da própria carta e de outras cartas aliadas.
+Esse efeito é ativado quando a carta entra em campo de forma válida.
 
-[Ativo]
-- Permanece funcionando enquanto a carta estiver no campo e virada para cima.
-- Efeitos de alteração de ATK ou DEF permanecem aplicados enquanto a carta estiver ativa.
-- Efeitos de dano ou cura com este gatilho são processados uma vez por turno.
+Exemplo:
+[Ao Entrar] +1 ATK
+
+Nesse caso, a criatura recebe o bônus indicado ao entrar em campo.
 
 14. ATAQUE E DEFESA DOS TERRENOS
 
@@ -327,3 +323,22 @@ O jogador que permanecer em uma condição válida vence a partida.
 12. ATK/DEF aumentados aparecem em verde; ATK/DEF reduzidos aparecem em vermelho.
 13. Reduza a vida inimiga a 0 para vencer.
 14. Se precisar comprar uma carta com o deck vazio, você perde.
+
+21. GATILHOS DE EFEITO
+Cartas com efeitos usam apenas estes gatilhos:
+- [Destruído]: ativa quando a carta é destruída e enviada ao cemitério.
+- [Campo]: ativa quando a carta entra em campo virada para cima ou é virada para cima já estando no campo.
+- [Ativo]: o efeito é ativado enquanto a carta permanece em campo virada para cima, conforme a resolução do sistema de turnos.
+
+22. CONJUNTO DE CARTAS
+O conjunto possui 60 cartas: 20 Criaturas, 20 Tecnologias e 20 Terrenos. Entre Criaturas e Terrenos existem cartas sem efeito.
+
+
+17. GATILHOS DOS EFEITOS
+
+Todo efeito de carta usa exatamente um dos três gatilhos abaixo:
+- Campo: ativa quando a carta entra em campo virada para cima ou quando uma carta já no campo é virada para cima.
+- Destruído: ativa quando a carta é destruída e enviada ao cemitério.
+- Ativo: permanece funcionando enquanto a carta estiver em campo e virada para cima. Efeitos Ativos que causam dano ou restauram vida são processados uma vez por turno; bônus de atributos permanecem enquanto a carta estiver válida no campo.
+
+Cartas sem efeito não possuem gatilho. Tecnologias são cartas de uso imediato e, por isso, seus efeitos são acionados pelo gatilho Campo ou são resolvidos quando forem destruídas por uma regra que permita sua destruição.
