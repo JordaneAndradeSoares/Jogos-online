@@ -47,6 +47,66 @@
             cursor: pointer;
         }
         #game-over button:hover { background-color: #cc0000; }
+
+        /* Controles para celular */
+        #mobile-controls {
+            display: none;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 22px;
+            z-index: 20;
+            justify-content: space-between;
+            padding: 0 22px;
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+
+        .mobile-control {
+            width: 78px;
+            height: 78px;
+            border: 2px solid rgba(255,255,255,0.8);
+            border-radius: 50%;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            font-size: 38px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+            pointer-events: auto;
+        }
+
+        .mobile-control:active {
+            background: rgba(255,255,255,0.35);
+        }
+
+        @media (max-width: 768px), (pointer: coarse) {
+            #mobile-controls {
+                display: flex;
+            }
+
+            #ui {
+                top: 12px;
+                left: 12px;
+                font-size: 20px;
+            }
+
+            #game-over {
+                width: min(80vw, 360px);
+                box-sizing: border-box;
+                padding: 24px;
+            }
+
+            #game-over button {
+                min-height: 48px;
+                padding: 10px 24px;
+            }
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -60,6 +120,11 @@
         <button onclick="restartGame()">Jogar Novamente</button>
     </div>
 
+    <div id="mobile-controls" aria-label="Controles do jogo">
+        <button class="mobile-control" id="left-control" aria-label="Mover para a esquerda">‹</button>
+        <button class="mobile-control" id="right-control" aria-label="Mover para a direita">›</button>
+    </div>
+
     <script>
         // Configuração da Cena, Câmera e Renderizador
         const scene = new THREE.Scene();
@@ -69,6 +134,7 @@
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.domElement.style.touchAction = 'none';
         document.body.appendChild(renderer.domElement);
 
         // Luzes
@@ -124,6 +190,62 @@
         // Variáveis de Controle e Estado
         const keys = { ArrowLeft: false, ArrowRight: false, a: false, d: false };
         const obstacles = [];
+
+        // Controles por toque: funcionam em Android e iPhone.
+        function setTouchControl(key, pressed) {
+            keys[key] = pressed;
+        }
+
+        function setupTouchButton(id, key) {
+            const button = document.getElementById(id);
+
+            const start = (event) => {
+                event.preventDefault();
+                setTouchControl(key, true);
+            };
+
+            const stop = (event) => {
+                event.preventDefault();
+                setTouchControl(key, false);
+            };
+
+            button.addEventListener('touchstart', start, { passive: false });
+            button.addEventListener('touchend', stop, { passive: false });
+            button.addEventListener('touchcancel', stop, { passive: false });
+            button.addEventListener('mousedown', start);
+            button.addEventListener('mouseup', stop);
+            button.addEventListener('mouseleave', stop);
+        }
+
+        setupTouchButton('left-control', 'ArrowLeft');
+        setupTouchButton('right-control', 'ArrowRight');
+
+        // Também permite controlar o carro arrastando o dedo na tela.
+        let touchStartX = null;
+
+        renderer.domElement.addEventListener('touchstart', (event) => {
+            if (event.touches.length !== 1) return;
+            touchStartX = event.touches[0].clientX;
+        }, { passive: true });
+
+        renderer.domElement.addEventListener('touchmove', (event) => {
+            if (touchStartX === null || event.touches.length !== 1 || isGameOver) return;
+
+            const currentX = event.touches[0].clientX;
+            const delta = currentX - touchStartX;
+
+            if (Math.abs(delta) > 12) {
+                playerGroup.position.x += delta * 0.025;
+                playerGroup.position.x = Math.max(-4.5, Math.min(4.5, playerGroup.position.x));
+                touchStartX = currentX;
+            }
+
+            event.preventDefault();
+        }, { passive: false });
+
+        renderer.domElement.addEventListener('touchend', () => {
+            touchStartX = null;
+        }, { passive: true });
         let score = 0;
         let speed = 0.5;
         let isGameOver = false;
@@ -135,6 +257,13 @@
 
         window.addEventListener('keyup', (e) => {
             if (e.key in keys) keys[e.key] = false;
+        });
+
+        window.addEventListener('blur', () => {
+            keys.ArrowLeft = false;
+            keys.ArrowRight = false;
+            keys.a = false;
+            keys.d = false;
         });
 
         // Criar Obstáculos
