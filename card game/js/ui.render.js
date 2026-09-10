@@ -100,7 +100,7 @@ function renderUI() {
         p1Hand.innerHTML += buildCardHTML(card, 'p1', 'hand', index);
     });
 }
-const RULES_TEXT = `QUANTUM FRONTIER — REGRAS
+const RULES_TEXT = `REGRAS
 
 1. OBJETIVO
 - Cada jogador começa com 20 de vida.
