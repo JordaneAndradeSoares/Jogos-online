@@ -100,7 +100,7 @@ function renderUI() {
         p1Hand.innerHTML += buildCardHTML(card, 'p1', 'hand', index);
     });
 }
-const RULES_TEXT = `QUANTUM FRONTIER — REGRAS DO JOGO
+const RULES_TEXT = `REGRAS DO JOGO
 
 1. OBJETIVO DO JOGO
 
