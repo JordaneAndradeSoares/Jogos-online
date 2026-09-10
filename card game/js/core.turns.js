@@ -18,15 +18,21 @@ function resolveEffectStack() {
 }
 
 function triggerEffect(triggerType, card, context = {}) {
-    if (!card || !card.effects || typeof card.effects[triggerType] !== 'function') return;
+    if (!card || !card.effects || typeof card.effects[triggerType] !== 'function') return false;
 
     const effectContext = {
         ...context,
         owner: context.owner || (state.players.p1.field.includes(card) ? 'p1' : 'p2'),
-        card
+        card,
+        trigger: triggerType
     };
 
+    // Os efeitos são resolvidos imediatamente. Assim, Campo e Destruído
+    // não ficam aguardando outra ação para aparecer no jogo.
     pushEffect(() => card.effects[triggerType](effectContext));
+    resolveEffectStack();
+    if (typeof renderUI === 'function') renderUI();
+    return true;
 }
 
 function passAction(playerKey) {
@@ -81,6 +87,7 @@ function endTurnCycle() {
         player.energy = player.maxEnergy;
 
         player.field.forEach(card => {
+            if (!card.isFaceDown && card.gatilho === 'ativo' && card.effects && card.effects.ativo && card._activeTickedTurn !== state.turn) { card._activeTickedTurn = state.turn; triggerEffect('ativo', card, { owner: playerKey, card }); }
             card.currentDef = card.def ?? card.baseDef ?? card.currentDef;
 
             if (card.type === 'criatura') {
@@ -139,4 +146,28 @@ window.onload = function () {
     if (typeof initGame === 'function') initGame();
 };
 
-function testAllCardEffects(){const missing=[]; if(typeof CardTriggers==='undefined') return {ok:false,missing:['CardTriggers não carregado']}; Object.keys(CardTriggers).forEach(name=>{if(!CARD_DATABASE.find(c=>c.name===name))missing.push(name+': ausente no banco');Object.entries(CardTriggers[name]).forEach(([k,v])=>{if(typeof v!=='function')missing.push(name+': '+k+' inválido')})}); const r={ok:!missing.length,missing,tested:Object.keys(CardTriggers).length};console.info('Teste de efeitos:',r);return r;}
+function testarTodosOsEfeitos() {
+    const erros = [];
+    const contagem = { campo: 0, destruido: 0, ativo: 0 };
+
+    if (typeof CARD_DATABASE === 'undefined') {
+        return { correto: false, erros: ['Banco de cartas não carregado.'], contagem };
+    }
+
+    CARD_DATABASE.forEach(carta => {
+        const gatilho = carta.gatilho || (typeof obterGatilhoDaCarta === 'function' ? obterGatilhoDaCarta(carta) : null);
+        if (carta.desc && !gatilho) erros.push(`${carta.name}: efeito sem gatilho.`);
+        if (gatilho && !['campo', 'destruido', 'ativo'].includes(gatilho)) erros.push(`${carta.name}: gatilho inválido.`);
+        if (gatilho) contagem[gatilho]++;
+    });
+
+    const resultado = { correto: erros.length === 0, erros, contagem };
+    console.info('Teste dos efeitos:', resultado);
+    return resultado;
+}
+
+// Nome antigo mantido para compatibilidade com versões anteriores.
+function testAllCardEffects() {
+    const resultado = testarTodosOsEfeitos();
+    return { ok: resultado.correto, missing: resultado.erros, tested: Object.values(resultado.contagem).reduce((a, b) => a + b, 0) };
+}

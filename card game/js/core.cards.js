@@ -74,6 +74,7 @@ function restartGameSameDeck() {
 
 function sendCardToGraveyard(card, playerKey, isDestroyed = false) {
     if (!card || !state.players[playerKey]) return;
+    if (isDestroyed && typeof triggerEffect === 'function') { triggerEffect('destruido', card, { owner: playerKey, card }); if (typeof resolveEffectStack === 'function') resolveEffectStack(); }
     card.isDestroyed = isDestroyed;
     if (card.baseAtk !== undefined) card.atk = card.baseAtk;
     if (card.baseDef !== undefined) {

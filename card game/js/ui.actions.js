@@ -99,11 +99,13 @@ function handleCardClick(owner, zone, index) {
                 if (player.energy >= card.cost) {
                     player.energy -= card.cost;
                     card.isFaceDown = false;
+                    card._activeStatApplied = false;
+                    card._activeTickedTurn = null;
                     card.currentDef = card.def;
                     card.summonedTurn = card.summonedTurn || state.turn;
                     card.casusBelli = 0;
-                    triggerEffect('revelar', card, { owner: 'p1', card: card });
-                    triggerEffect('aoEntrar', card, { owner: 'p1', card: card });
+                    triggerEffect('campo', card, { owner: 'p1', card: card });
+                    if (card.gatilho === 'ativo') triggerEffect('ativo', card, { owner: 'p1', card: card });
                     showToast(`${card.name} foi revelada. Ela não pode atacar neste turno.`, "info");
                     registerActionDone('p1');
                 } else {
@@ -153,8 +155,8 @@ function confirmPlay(faceDown) {
 
     if (card.type === 'tecnologia') {
         player.energy -= card.cost;
+        triggerEffect('campo', card, { owner: 'p1', card: card });
         sendCardToGraveyard(card, 'p1', false);
-        triggerEffect('tecnologia', card, { owner: 'p1', card: card });
         showToast(`Você usou a Mágica ${card.name}!`, "success");
     } else {
         if (faceDown) {
@@ -166,9 +168,12 @@ function confirmPlay(faceDown) {
         } else {
             player.energy -= card.cost;
             card.summonedTurn = state.turn;
+            card._activeStatApplied = false;
+            card._activeTickedTurn = null;
             card.isResting = card.type === 'criatura';
             player.field.push(card);
-            triggerEffect('aoEntrar', card, { owner: 'p1', card: card });
+            triggerEffect('campo', card, { owner: 'p1', card: card });
+            if (card.gatilho === 'ativo') triggerEffect('ativo', card, { owner: 'p1', card: card });
         }
     }
 

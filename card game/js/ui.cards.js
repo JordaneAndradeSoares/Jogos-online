@@ -18,8 +18,9 @@ function getCardStatsHTML(card) {
     // Terrenos possuem ataque nulo.
     const atkVal = card.atk;
     const defVal = card.currentDef ?? card.def ?? 0;
-    const atkClass = atkVal > (card.baseAtk ?? atkVal) ? 'stat-up' : atkVal < (card.baseAtk ?? atkVal) ? 'stat-down' : '';
-    const defBase = card.def ?? card.baseDef ?? defVal;
+    const atkBase = card.baseAtk ?? atkVal;
+    const defBase = card.baseDef ?? card.def ?? defVal;
+    const atkClass = atkVal > atkBase ? 'stat-up' : atkVal < atkBase ? 'stat-down' : '';
     const defClass = defVal > defBase ? 'stat-up' : defVal < defBase ? 'stat-down' : '';
     const attack = atkVal === null || atkVal === undefined ? '—' : `<span class="${atkClass}">${atkVal}</span>`;
     const defense = `<span class="${defClass}">${defVal}</span>`;
@@ -30,7 +31,7 @@ function getFullCardContent(card) {
     return `
         <div class="card-top-section">
             ${card.name}
-            <div class="card-cost-circle">${card.cost}</div>
+            <div class="card-cost-circle ${((card.custoAtual ?? card.cost) < (card.custoBase ?? card.cost)) ? 'stat-up' : ((card.custoAtual ?? card.cost) > (card.custoBase ?? card.cost)) ? 'stat-down' : ''}">${card.custoAtual ?? card.cost}</div>
         </div>
 
         <div class="card-img-box">

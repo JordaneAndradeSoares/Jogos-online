@@ -195,18 +195,22 @@ Exemplos de efeitos incluem:
 
 Os efeitos devem ser resolvidos conforme o texto e os gatilhos da carta.
 
-13. EFEITOS "AO ENTRAR"
+13. GATILHOS DOS EFEITOS
 
-Algumas cartas possuem efeitos com o gatilho:
+Todos os efeitos das cartas utilizam somente um destes gatilhos:
 
-[Ao Entrar]
+[Campo]
+- Ativa quando a carta entra em campo virada para cima.
+- Também ativa quando uma carta que já está no campo é virada para cima.
 
-Esse efeito é ativado quando a carta entra em campo de forma válida.
+[Destruído]
+- Ativa quando a carta é destruída e enviada ao cemitério.
+- O efeito é resolvido antes de a carta deixar definitivamente o campo, permitindo que ele use informações da própria carta e de outras cartas aliadas.
 
-Exemplo:
-[Ao Entrar] +1 ATK
-
-Nesse caso, a criatura recebe o bônus indicado ao entrar em campo.
+[Ativo]
+- Permanece funcionando enquanto a carta estiver no campo e virada para cima.
+- Efeitos de alteração de ATK ou DEF permanecem aplicados enquanto a carta estiver ativa.
+- Efeitos de dano ou cura com este gatilho são processados uma vez por turno.
 
 14. ATAQUE E DEFESA DOS TERRENOS
 

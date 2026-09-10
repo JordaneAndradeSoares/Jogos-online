@@ -13,9 +13,11 @@ const CardEffects = {
     buffSelf(context, atkBonus = 0, defBonus = 0) {
         const card = context.card;
         if (!card) return;
+        if (card._activeStatApplied) return;
         card.atk = (card.atk === null ? 0 : card.atk) + atkBonus;
         card.def = (card.def === null ? 0 : card.def) + defBonus;
         card.currentDef = (card.currentDef === null ? 0 : card.currentDef) + defBonus;
+        card._activeStatApplied = true;
         if (typeof showToast === 'function') showToast(`${card.name}: ${atkBonus >= 0 ? '+' : ''}${atkBonus} ATK / ${defBonus >= 0 ? '+' : ''}${defBonus} DEF.`, "success");
     },
 

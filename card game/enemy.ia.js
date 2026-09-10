@@ -12,9 +12,9 @@ function scoreEnemyPlay(card) {
         return 6 + (card.cost || 0);
     }
     const stats = (card.atk === null ? "—" : card.atk) * 2 + (card.def === null ? "—" : card.def) + (card.cost || 0);
-    const effectBonus = card.effects && card.effects.aoEntrar ? 4 : 0;
+    const bonusEfeito = card.effects && card.effects.campo ? 4 : 0;
     const terrainBonus = card.type === 'terreno' ? Math.max(2, card.def === null ? "—" : card.def) : 0;
-    return stats + effectBonus + terrainBonus;
+    return stats + bonusEfeito + terrainBonus;
 }
 
 function chooseEnemyPlay() {
@@ -127,15 +127,19 @@ function executeEnemyTurn() {
         enemy.energy -= card.cost;
 
         if (card.type === 'tecnologia') {
+            triggerEffect('campo', card, { owner: 'p2', card });
             sendCardToGraveyard(card, 'p2', false);
-            triggerEffect('tecnologia', card, { owner: 'p2', card });
+            if (card.gatilho === 'ativo') triggerEffect('ativo', card, { owner: 'p2', card });
         } else {
             card.summonedTurn = state.turn;
             card.isFaceDown = false;
+            card._activeStatApplied = false;
+            card._activeTickedTurn = null;
             card.isResting = card.type === 'criatura';
             card.casusBelli = 0;
             enemy.field.push(card);
-            triggerEffect('aoEntrar', card, { owner: 'p2', card });
+            triggerEffect('campo', card, { owner: 'p2', card });
+            if (card.gatilho === 'ativo') triggerEffect('ativo', card, { owner: 'p2', card });
         }
 
         if (typeof showToast === 'function') showToast(`Inimigo jogou ${card.name}.`, 'info');
