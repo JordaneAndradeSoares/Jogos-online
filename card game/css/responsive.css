@@ -21,6 +21,208 @@
 }
 
 @media (max-width: 900px) and (orientation: portrait) {
-    .game-container, #combat-svg, #toast-container { display:none !important; }
-    #rotate-device { display:flex; position:fixed; inset:0; padding:24px; align-items:center; justify-content:center; text-align:center; background:#2d3436; color:#fff; z-index:20000; font-size:18px; line-height:1.5; }
+    /* No celular em pé o jogo ocupa toda a tela, sem exigir rotação. */
+    body {
+        padding: 3px;
+        min-height: 100dvh;
+        overflow: auto;
+    }
+
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        min-height: calc(100dvh - 6px);
+        gap: 5px;
+    }
+
+    .header {
+        max-width: none;
+        width: 100%;
+        padding: 6px;
+        gap: 5px;
+        flex-shrink: 0;
+    }
+
+    .stats-table {
+        width: 100%;
+        font-size: 10px;
+    }
+
+    .turn-info {
+        width: 100%;
+    }
+
+    .turn-info h2 {
+        font-size: 12px;
+    }
+
+    .initiative-badge {
+        font-size: 10px;
+        padding: 3px 7px;
+    }
+
+    .force-legend {
+        display: none;
+    }
+
+    .controls {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+    }
+
+    .controls .action-btn {
+        min-width: 0;
+        width: 100%;
+        padding: 7px 4px;
+        font-size: 10px;
+        line-height: 1.15;
+    }
+
+    .main-content {
+        width: 100%;
+        gap: 5px;
+    }
+
+    .board {
+        gap: 5px;
+    }
+
+    .player-area {
+        padding: 4px;
+        border-width: 1px;
+    }
+
+    .player-area > div:first-child,
+    .player-area > div:nth-last-child(2) {
+        font-size: 9px !important;
+        margin-bottom: 2px !important;
+        margin-top: 2px !important;
+    }
+
+    .zones-container {
+        gap: 4px;
+    }
+
+    .field-zone {
+        min-height: 92px;
+        gap: 4px;
+        padding: 3px;
+    }
+
+    .hand-zone {
+        min-height: 96px;
+        gap: 4px;
+        padding: 3px;
+        margin-top: 2px;
+    }
+
+    .gy-zone {
+        width: 48px;
+        min-width: 48px;
+        min-height: 92px;
+        padding: 3px;
+    }
+
+    .gy-zone > div:first-child {
+        font-size: 8px !important;
+    }
+
+    .card {
+        width: 67px;
+        height: 101px;
+        flex: 0 0 67px;
+    }
+
+    .card-top-section {
+        font-size: 6px;
+        height: 16px;
+    }
+
+    .card-bottom-section {
+        height: 30px;
+        font-size: 5.5px;
+    }
+
+    .card-cost-circle {
+        width: 16px;
+        height: 16px;
+        font-size: 8px;
+    }
+
+    .card-stats-box {
+        font-size: 7px;
+    }
+
+    .tutorial-content {
+        max-width: 94vw;
+        max-height: 70dvh;
+        padding: 10px;
+        font-size: 11px;
+    }
+
+    #rotate-device {
+        display: none !important;
+    }
+
+    #toast-container {
+        top: 5px;
+        right: 5px;
+        left: 5px;
+        gap: 5px;
+    }
+
+    .toast {
+        max-width: 100%;
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+}
+
+/* CELULAR: jogo somente em modo horizontal */
+@media (max-width: 900px) and (orientation: portrait) {
+    body {
+        overflow: hidden !important;
+        min-height: 100dvh;
+        padding: 0 !important;
+    }
+
+    /* Bloqueia a interface enquanto o aparelho estiver em pé. */
+    .game-container,
+    #deck-builder,
+    #toast-container,
+    #combat-svg {
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    #rotate-device {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 99999 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-direction: column !important;
+        gap: 14px !important;
+        padding: 25px !important;
+        background: #07101e !important;
+        color: white !important;
+        text-align: center !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+        line-height: 1.4 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+
+    #rotate-device::before {
+        content: "↔";
+        display: block;
+        font-size: 58px;
+        line-height: 1;
+    }
 }
