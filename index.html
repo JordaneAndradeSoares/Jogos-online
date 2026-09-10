@@ -161,51 +161,84 @@ body{
         border-radius: 20px;
     }
 }
+
+/* ===== MODO CELULAR ===== */
+@media (max-width: 767px) {
+    body {
+        height: 100dvh;
+        min-height: 100dvh;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: 54px;
+        min-height: 54px;
+        padding: 6px 10px;
+        gap: 8px;
+        justify-content: center;
+        overflow: hidden;
+        border-bottom: 1px solid rgba(127,255,212,.25);
+    }
+
+    .sidebar h1 {
+        font-size: 0;
+        width: 0;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .sidebar h1::after {
+        content: "TCG";
+        display: block;
+        width: auto;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .botoes-container {
+        width: auto;
+        flex: 1;
+        justify-content: center;
+        gap: 6px;
+        overflow: hidden;
+    }
+
+    .botoes-container button {
+        display: none;
+    }
+
+    .botoes-container button:first-child {
+        display: block;
+        width: 100%;
+        max-width: 180px;
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+
+    .main {
+        min-height: 0;
+        width: 100%;
+        padding: 3px;
+        align-items: stretch;
+    }
+
+    .game-container {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        border-radius: 8px;
+    }
+}
+
 </style>
 
 <script>
 function abrirJogo(url, btnElement) {
-    const container = document.getElementById("jogo");
-    const botoes = document.querySelectorAll(".sidebar button");
-
-    // Verifica se o jogo já está aberto
-    if(container.dataset.jogo === url){
-        // Fecha o jogo
-        container.innerHTML = "";
-        container.dataset.jogo = "";
-        botoes.forEach(b => b.classList.remove("ativo"));
-    } else {
-        // Remove destaque de todos e adiciona no clicado
-        botoes.forEach(b => b.classList.remove("ativo"));
-        
-        if(btnElement) {
-            btnElement.classList.add("ativo");
-            
-            // LÓGICA DE MOVIMENTAÇÃO AUTOMÁTICA
-            // Faz a barra rolar suavemente até o botão clicado (Centra o botão na tela)
-            btnElement.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        }
-
-        // Abre o novo jogo
-        container.innerHTML = `
-            <iframe src="${url}"
-                style="width:100%; height:100%; border:none;">
-            </iframe>
-        `;
-        container.dataset.jogo = url;
-    }
+    // Cada jogo abre em uma nova guia, deixando a página principal livre.
+    window.open(url, '_blank', 'noopener,noreferrer');
 }
-
-// LÓGICA EXTRA: Permite usar a rodinha do mouse para rolar a barra horizontal em janelas pequenas no PC
-document.addEventListener("DOMContentLoaded", () => {
-    const sidebar = document.querySelector('.sidebar');
-    sidebar.addEventListener('wheel', (evt) => {
-        if (window.innerWidth < 768) {
-            evt.preventDefault();
-            sidebar.scrollLeft += evt.deltaY; // Converte scroll vertical em horizontal
-        }
-    });
-});
 </script>
 
 </head>
@@ -231,11 +264,5 @@ document.addEventListener("DOMContentLoaded", () => {
         <button onclick="abrirJogo('jogos simples/movimento.html', this)">Censor de movimento</button>
     </div>
 </div>
-
-<div class="main">
-    <div class="game-container" id="jogo" data-jogo="">
-    </div>
-</div>
-
-</body>
+    </body>
 </html>
