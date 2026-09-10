@@ -15,11 +15,16 @@ function getForceHTML(force) {
 function getCardStatsHTML(card) {
     if (card.type === 'tecnologia') return '';
 
-    // Terrenos possuem ataque nulo.
-    const atkVal = card.atk;
-    const defVal = card.currentDef ?? card.def ?? 0;
-    const atkBase = card.baseAtk ?? atkVal;
-    const defBase = card.baseDef ?? card.def ?? defVal;
+    // Ao visualizar uma carta própria virada para baixo, mostrar os
+    // atributos reais sem alterar os valores internos da carta.
+    const atkVal = card.isFaceDown
+        ? (card._faceDownOriginalAtk ?? card.atk)
+        : card.atk;
+    const defVal = card.isFaceDown
+        ? (card._faceDownOriginalCurrentDef ?? card._faceDownOriginalDef ?? card.currentDef ?? card.def ?? 0)
+        : (card.currentDef ?? card.def ?? 0);
+    const atkBase = card.baseAtk ?? card._faceDownOriginalAtk ?? atkVal;
+    const defBase = card.baseDef ?? card._faceDownOriginalDef ?? defVal;
     const atkClass = atkVal > atkBase ? 'stat-up' : atkVal < atkBase ? 'stat-down' : '';
     const defClass = defVal > defBase ? 'stat-up' : defVal < defBase ? 'stat-down' : '';
     const attack = atkVal === null || atkVal === undefined ? '—' : `<span class="${atkClass}">${atkVal}</span>`;

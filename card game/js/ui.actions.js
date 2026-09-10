@@ -26,56 +26,14 @@ function handleCardClick(owner, zone, index) {
             }
 
             if (card.isFaceDown) {
-                const revealCost = Number(card._faceDownOriginalCost ?? card.baseCost ?? card.cost) || 0;
-                if (player.energy < revealCost) {
-                    showToast(`Energia insuficiente para revelar ${card.name}! Custo: ${revealCost}.`, "error");
-                    return;
-                }
-                player.energy -= revealCost;
-                card.isFaceDown = false;
-                card.cost = revealCost;
-                card.atk = card._faceDownOriginalAtk ?? card.atk;
-                card.def = card._faceDownOriginalDef ?? card.def;
-                card.currentDef = card._faceDownOriginalCurrentDef ?? card.def ?? card.baseDef ?? 1;
-                delete card._faceDownOriginalCost;
-                delete card._faceDownOriginalAtk;
-                delete card._faceDownOriginalDef;
-                delete card._faceDownOriginalCurrentDef;
-                card.summonedTurn = card.summonedTurn || state.turn;
-                showToast(`${card.name} foi revelada para bloquear! Custo pago: ${revealCost}.`, "info");
+                // Durante um ataque, primeiro pergunte se o jogador quer apenas revelar
+                // a carta ou se quer revelá-la e usá-la imediatamente como bloqueador.
+                state.pendingFaceDownBlockIndex = index;
+                document.getElementById('face-down-action-modal').style.display = 'flex';
+                return;
             }
 
-            const attackerCard = state.activeAttack.attackerCard;
-            const p2 = state.players.p2;
-            const blockerAtk = card.type === 'terreno' ? 0 : Number(card.atk) || 0;
-            const attackerAtk = Number(attackerCard.atk) || 0;
-
-            drawCombatLine('p2', state.activeAttack.attackerIndex, 'p1', index);
-            showToast(`Você bloqueou o ataque de ${attackerCard.name} com ${card.name}!`, "info");
-
-            card.currentDef -= attackerAtk;
-            attackerCard.currentDef -= blockerAtk;
-
-            const destroyed = [];
-            if (card.currentDef <= 0) {
-                sendCardToGraveyard(card, 'p1', true);
-                player.field = player.field.filter(c => c !== card);
-                destroyed.push(card.name);
-            }
-            if (attackerCard.currentDef <= 0) {
-                sendCardToGraveyard(attackerCard, 'p2', true);
-                p2.field = p2.field.filter(c => c !== attackerCard);
-                destroyed.push(attackerCard.name);
-            }
-
-            if (destroyed.length > 0) {
-                showToast(`Combate: ${destroyed.join(' e ')} foi(ram) destruído(s)!`, "error");
-            } else {
-                showToast("Combate resolvido! Nenhuma carta foi destruída.", "info");
-            }
-
-            state.activeAttack = null;
-            registerActionDone('p1');
+            resolveFaceDownBlock(index);
             return;
         } else {
             showToast("Clique em uma criatura no seu campo para bloquear o ataque!", "warning");
@@ -155,6 +113,99 @@ function handleCardClick(owner, zone, index) {
             }
         }
     }
+}
+
+function revealFaceDownCard(index, owner = 'p1') {
+    const player = state.players[owner];
+    const card = player?.field?.[index];
+    if (!card || !card.isFaceDown) return false;
+
+    const revealCost = Number(card._faceDownOriginalCost ?? card.baseCost ?? card.cost) || 0;
+    if (player.energy < revealCost) {
+        showToast(`Energia insuficiente para revelar ${card.name}! Custo: ${revealCost}.`, "error");
+        return false;
+    }
+
+    player.energy -= revealCost;
+    card.isFaceDown = false;
+    card.cost = revealCost;
+    card.atk = card._faceDownOriginalAtk ?? card.atk;
+    card.def = card._faceDownOriginalDef ?? card.def;
+    card.currentDef = card._faceDownOriginalCurrentDef ?? card.def ?? card.baseDef ?? 1;
+    delete card._faceDownOriginalCost;
+    delete card._faceDownOriginalAtk;
+    delete card._faceDownOriginalDef;
+    delete card._faceDownOriginalCurrentDef;
+    card.summonedTurn = card.summonedTurn || state.turn;
+    return true;
+}
+
+function resolveFaceDownReveal() {
+    const index = state.pendingFaceDownBlockIndex;
+    closeFaceDownActionModal();
+    if (index === null || index === undefined || !state.activeAttack) return;
+
+    // Segunda opção: revelar e bloquear usando os atributos reais da carta.
+    if (!revealFaceDownCard(index, 'p1')) {
+        state.pendingFaceDownBlockIndex = null;
+        return;
+    }
+
+    resolveFaceDownBlock(index, false);
+}
+
+function resolveFaceDownBlock(index = state.pendingFaceDownBlockIndex, revealFirst = false) {
+    closeFaceDownActionModal();
+    if (index === null || index === undefined || !state.activeAttack) return;
+
+    const player = state.players.p1;
+    const card = player.field[index];
+    if (!card) { state.pendingFaceDownBlockIndex = null; return; }
+
+    // Se revealFirst=true, a carta já foi revelada pela segunda opção.
+    // Na primeira opção ela permanece virada para baixo durante o bloqueio.
+    if (revealFirst && card.isFaceDown && !revealFaceDownCard(index, 'p1')) {
+        state.pendingFaceDownBlockIndex = null;
+        return;
+    }
+
+    const attackerCard = state.activeAttack.attackerCard;
+    const p2 = state.players.p2;
+    const blockerAtk = card.type === 'terreno' ? 0 : Number(card.atk) || 0;
+    const attackerAtk = Number(attackerCard.atk) || 0;
+
+    drawCombatLine('p2', state.activeAttack.attackerIndex, 'p1', index);
+    showToast(`Você bloqueou o ataque de ${attackerCard.name} com ${card.name}!`, "info");
+
+    card.currentDef -= attackerAtk;
+    attackerCard.currentDef -= blockerAtk;
+
+    const destroyed = [];
+    if (card.currentDef <= 0) {
+        sendCardToGraveyard(card, 'p1', true);
+        player.field = player.field.filter(c => c !== card);
+        destroyed.push(card.name);
+    }
+    if (attackerCard.currentDef <= 0) {
+        sendCardToGraveyard(attackerCard, 'p2', true);
+        p2.field = p2.field.filter(c => c !== attackerCard);
+        destroyed.push(attackerCard.name);
+    }
+
+    if (destroyed.length > 0) {
+        showToast(`Combate: ${destroyed.join(' e ')} foi(ram) destruído(s)!`, "error");
+    } else {
+        showToast("Combate resolvido! Nenhuma carta foi destruída.", "info");
+    }
+
+    state.activeAttack = null;
+    state.pendingFaceDownBlockIndex = null;
+    registerActionDone('p1');
+}
+
+function closeFaceDownActionModal() {
+    const modal = document.getElementById('face-down-action-modal');
+    if (modal) modal.style.display = 'none';
 }
 
 function confirmPlay(faceDown) {

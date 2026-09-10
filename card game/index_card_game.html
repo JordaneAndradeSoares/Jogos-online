@@ -134,6 +134,16 @@
         </div>
     </div>
 
+
+    <div class="modal" id="face-down-action-modal">
+        <h3 style="color:white;">O que deseja fazer com esta carta?</h3>
+        <div class="modal-content">
+            <button class="action-btn" onclick="resolveFaceDownBlock()">Bloquear com a carta virada para baixo</button>
+            <button class="action-btn" onclick="resolveFaceDownReveal()">Virar para cima e bloquear com a carta virada para cima</button>
+            <button class="action-btn" style="background:#636e72;" onclick="closeFaceDownActionModal()">Cancelar</button>
+        </div>
+    </div>
+
     <div class="modal" id="discard-modal">
         <h3 style="color:white;" id="discard-modal-title">Deseja ejetar esta carta?</h3>
         <div class="modal-content">
