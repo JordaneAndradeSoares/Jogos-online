@@ -43,12 +43,12 @@ function initGame(playerDeckNames, enemyDeckNames) {
     state.pendingDiscard = { p1: false, p2: false };
 
     state.players.p1 = {
-        life: 20, energy: 1, maxEnergy: 1,
+        life: 20, energy: 0, maxEnergy: 20,
         deck: buildDeckFromNames(playerDeckNames), hand: [], field: [], gy: []
     };
 
     state.players.p2 = {
-        life: 20, energy: 1, maxEnergy: 1,
+        life: 20, energy: 0, maxEnergy: 20,
         deck: buildDeckFromNames(enemyDeckNames), hand: [], field: [], gy: []
     };
 
@@ -60,6 +60,8 @@ function initGame(playerDeckNames, enemyDeckNames) {
         if (state.players.p1.deck.length > 0) state.players.p1.hand.push(state.players.p1.deck.pop());
         if (state.players.p2.deck.length > 0) state.players.p2.hand.push(state.players.p2.deck.pop());
     }
+
+    iniciarTemporizadorAcao();
 
     if (typeof renderUI === 'function') renderUI();
     return true;
@@ -83,6 +85,7 @@ function sendCardToGraveyard(card, playerKey, isDestroyed = false) {
     }
     card.isFaceDown = false;
     card.isStunned = false;
+    card.stunnedUntilTurn = null;
     card.attackedThisTurn = false;
     card.attackedLastTurn = false;
     card.lastAttackTurn = null;

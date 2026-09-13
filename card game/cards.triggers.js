@@ -1,66 +1,94 @@
 const GATILHOS_EFEITOS = Object.freeze(['campo', 'destruido', 'ativo']);
 const CardTriggers = {};
 
+function normalizarDescricaoEfeito(descricao) {
+    return String(descricao || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+}
+
 function obterGatilhoDaCarta(carta) {
     if (!carta) return null;
-    if (GATILHOS_EFEITOS.includes(carta.gatilho)) return carta.gatilho;
 
-    const descricao = carta.desc || '';
-    if (descricao.includes('[Campo]')) return 'campo';
-    if (descricao.includes('[Destruído]')) return 'destruido';
-    if (descricao.includes('[Ativo]')) return 'ativo';
+    if (GATILHOS_EFEITOS.includes(carta.gatilho)) {
+        return carta.gatilho;
+    }
+
+    const descricao = normalizarDescricaoEfeito(carta.desc);
+
+    if (descricao.includes('[campo]')) return 'campo';
+    if (descricao.includes('[destruido]')) return 'destruido';
+    if (descricao.includes('[ativo]')) return 'ativo';
+
     return null;
 }
 
 function criarFuncaoDoEfeito(carta) {
-    const descricao = carta.desc || '';
+    const descricao = normalizarDescricaoEfeito(carta.desc);
 
     return contexto => {
-        if (descricao.includes('Causa 2 dano direto')) {
-            return CardEffects.damageOpponent(contexto, 2);
+        // IMPORTANTE: danos diretos são testados antes dos demais danos.
+        // Isso garante que cartas como Efeito 16 ("Causa 2 dano direto")
+        // sempre acertem o jogador inimigo.
+        let match = descricao.match(/causa\s+(\d+)\s+dano\s+direto/);
+        if (match) {
+            return CardEffects.damageOpponent(contexto, Number(match[1]));
         }
-        if (descricao.includes('Causa 1 dano direto')) {
-            return CardEffects.damageOpponent(contexto, 1);
+
+        match = descricao.match(/causa\s+(\d+)\s+dano\s+a\s+criatura/);
+        if (match) {
+            return CardEffects.damageEnemyTarget(contexto, Number(match[1]));
         }
-        if (descricao.includes('Restaura 2 de vida')) {
-            return CardEffects.healSelf(contexto, 2);
+
+        match = descricao.match(/restaura\s+(\d+)\s+de\s+vida/);
+        if (match) {
+            return CardEffects.healSelf(contexto, Number(match[1]));
         }
-        if (descricao.includes('Restaura 1 de vida')) {
-            return CardEffects.healSelf(contexto, 1);
+
+        match = descricao.match(/outra\s+criatura\s+recebe\s+\+(\d+)\s+def/);
+        if (match) {
+            return CardEffects.buffOtherCreature(contexto, Number(match[1]));
         }
-        if (descricao.includes('Outra criatura recebe +2 DEF')) {
-            return CardEffects.buffOtherCreature(contexto, 2);
+
+        match = descricao.match(/\+(\d+)\s+atk/);
+        if (match) {
+            return CardEffects.buffSelf(contexto, Number(match[1]), 0);
         }
-        if (descricao.includes('Outra criatura recebe +1 DEF')) {
-            return CardEffects.buffOtherCreature(contexto, 1);
+
+        match = descricao.match(/\+(\d+)\s+def/);
+        if (match) {
+            return CardEffects.buffSelf(contexto, 0, Number(match[1]));
         }
-        if (descricao.includes('+2 DEF')) {
-            return CardEffects.buffSelf(contexto, 0, 2);
+
+        if (descricao.includes('atordoa')) {
+            return CardEffects.stunTarget(contexto);
         }
-        if (descricao.includes('+1 DEF')) {
-            return CardEffects.buffSelf(contexto, 0, 1);
-        }
-        if (descricao.includes('+1 ATK')) {
-            return CardEffects.buffSelf(contexto, 1, 0);
-        }
-        if (descricao.includes('Causa 1 dano à criatura')) {
-            return CardEffects.damageEnemyTarget(contexto, 1);
-        }
+
+        console.warn(`Efeito sem implementação para a carta "${carta.name}": ${carta.desc}`);
+        return false;
     };
 }
 
 function criarEfeitosDaCarta(carta) {
     const gatilho = obterGatilhoDaCarta(carta);
+
     if (!gatilho) return {};
 
-    const funcaoEfeito = criarFuncaoDoEfeito(carta);
-    return { [gatilho]: funcaoEfeito };
+    return {
+        [gatilho]: criarFuncaoDoEfeito(carta)
+    };
 }
 
 function anexarGatilhosNaCarta(carta) {
+    if (!carta) return carta;
+
     const gatilho = obterGatilhoDaCarta(carta);
     carta.gatilho = gatilho;
     carta.effects = criarEfeitosDaCarta(carta);
+
     return carta;
 }
 

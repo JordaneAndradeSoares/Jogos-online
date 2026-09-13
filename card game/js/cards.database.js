@@ -85,6 +85,9 @@ function createCard(baseCard) {
         casusBelli: 0,
         isFaceDown: false,
         isStunned: false,
+        // Turno até o qual a criatura deve continuar atordoada.
+        // Ao entrar: turno atual; após atacar: turno atual + 1.
+        stunnedUntilTurn: null,
         attackedThisTurn: false,
         attackedLastTurn: false,
         lastAttackTurn: null,

@@ -1,6 +1,12 @@
 function confirmAttack() {
     if (selectedCardToAttackIndex === null) return;
 
+    if (state.initiativeOwner !== 'p1' || state.activeAttack) {
+        closeAttackModal();
+        showToast('Seu tempo de ação terminou.', 'warning');
+        return;
+    }
+
     const player = state.players.p1;
     const attackerCard = player.field[selectedCardToAttackIndex];
     
@@ -14,7 +20,6 @@ function confirmAttack() {
         attackerCard.isFaceDown ||
         attackerCard.isStunned ||
         attackerCard.attackedThisTurn ||
-        attackerCard.summonedTurn >= state.turn ||
         attackerCard.lastAttackTurn === state.turn - 1 ||
         attackerCard.casusBelli === 0 ||
         attackerCard.isResting
@@ -25,6 +30,9 @@ function confirmAttack() {
 
     attackerCard.attackedThisTurn = true;
     attackerCard.attackedLastTurn = false;
+    // Após atacar, a criatura fica atordoada durante o próximo turno inteiro.
+    attackerCard.isStunned = true;
+    attackerCard.stunReason = 'attack';
     attackerCard.lastAttackTurn = state.turn;
     attackerCard.casusBelli = 0;
 

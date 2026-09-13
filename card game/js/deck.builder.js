@@ -54,12 +54,19 @@ function startGameFromBuilder() {
         alert('Seu deck precisa ter exatamente 40 cartas.');
         return;
     }
-    const enemyDeck = generateRandomDeckNames();
-    if (enemyDeck.length !== 40) {
-        alert('Não foi possível montar o deck do inimigo.');
-        return;
-    }
-    const started = initGame([...deckBuilderSelection], [...enemyDeck]);
+    /*
+     * O inimigo usa exatamente a mesma composição de deck
+     * escolhida pelo jogador.
+     *
+     * A cópia é independente, então cada deck pode ser
+     * embaralhado separadamente durante a partida.
+     */
+    const enemyDeck = [...deckBuilderSelection];
+
+    const started = initGame(
+        [...deckBuilderSelection],
+        [...enemyDeck]
+    );
     if (!started) {
         alert('Não foi possível iniciar a partida.');
         return;
