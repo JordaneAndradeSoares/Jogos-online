@@ -71,7 +71,7 @@ function createCard(baseCard) {
 
     const card = {
         ...baseCard,
-        // Novo sistema de energia: cartas recarregam de 0 a 3 energia.
+        // Sistema de energia: cartas recarregam de 0 a 3 energia.
         energyRecharge: Math.max(0, Math.min(3, Number(baseCard.energyRecharge ?? baseCard.generation ?? 0))),
 
         // Mantém null para cartas que não possuem ataque.
