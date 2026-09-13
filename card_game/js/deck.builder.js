@@ -16,19 +16,39 @@ function renderDeckBuilder() {
     countEl.textContent = `${deckBuilderSelection.length} / 40`;
     startBtn.disabled = deckBuilderSelection.length !== 40;
 
+    /*
+     * A montagem do deck usa exatamente o mesmo HTML de carta usado
+     * durante a partida. Assim, custo, geração, arte, descrição,
+     * força e ATK/DEF ficam visualmente consistentes entre as telas.
+     */
     container.innerHTML = CARD_DATABASE.map((card, index) => {
         const count = counts[card.name] || 0;
-        const stats = card.type === 'efeito' ? '' : ` • ${card.atk == null ? '—' : card.atk} / ${card.def}`;
-        return `<div style="border:1px solid #334155;border-radius:8px;padding:8px;background:#1e293b;">
-            <img src="${card.art}" alt="${card.name}" style="width:100%;height:110px;object-fit:contain;">
-            <div><b>${card.name}</b></div>
-            <div style="font-size:12px;">${card.type} • Custo ${card.cost}${stats}</div>
-            <div style="display:flex;gap:5px;align-items:center;margin-top:7px;">
-                <button class="action-btn" onclick="changeDeckCard(${index}, -1)" ${count === 0 ? 'disabled' : ''}>−</button>
-                <span>${count}/3</span>
-                <button class="action-btn" onclick="changeDeckCard(${index}, 1)" ${count >= 3 || deckBuilderSelection.length >= 40 ? 'disabled' : ''}>+</button>
+
+        const cardHTML = `
+            <div class="deck-builder-card-wrap">
+                <div class="deck-builder-card-preview">
+                    ${getFullCardContent(card)}
+                </div>
+
+                <div class="deck-builder-controls">
+                    <button
+                        class="action-btn"
+                        onclick="changeDeckCard(${index}, -1)"
+                        ${count === 0 ? 'disabled' : ''}
+                    >−</button>
+
+                    <span class="deck-builder-card-count">${count}/3</span>
+
+                    <button
+                        class="action-btn"
+                        onclick="changeDeckCard(${index}, 1)"
+                        ${count >= 3 || deckBuilderSelection.length >= 40 ? 'disabled' : ''}
+                    >+</button>
+                </div>
             </div>
-        </div>`;
+        `;
+
+        return cardHTML;
     }).join('');
 }
 
