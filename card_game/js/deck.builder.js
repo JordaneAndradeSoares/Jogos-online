@@ -18,7 +18,7 @@ function renderDeckBuilder() {
 
     container.innerHTML = CARD_DATABASE.map((card, index) => {
         const count = counts[card.name] || 0;
-        const stats = card.type === 'tecnologia' ? '' : ` • ${card.atk == null ? '—' : card.atk} / ${card.def}`;
+        const stats = card.type === 'efeito' ? '' : ` • ${card.atk == null ? '—' : card.atk} / ${card.def}`;
         return `<div style="border:1px solid #334155;border-radius:8px;padding:8px;background:#1e293b;">
             <img src="${card.art}" alt="${card.name}" style="width:100%;height:110px;object-fit:contain;">
             <div><b>${card.name}</b></div>

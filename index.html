@@ -10,7 +10,6 @@
 <style>
 
 /* ESTILOS GLOBAIS */
-
 * {
     margin: 0;
     padding: 0;
@@ -22,120 +21,79 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-
     background-image: url('fundo.jpg');
     background-size: 100px;
     background-repeat: repeat;
     background-position: center;
     background-attachment: fixed;
-
     overflow-x: hidden;
     overflow-y: auto;
 }
 
-
 /* MENU DE JOGOS */
-
 .menu {
     width: 100%;
     min-height: 100vh;
-
-    background: rgba(20, 20, 20, 0.95);
-
+    background: rgba(21, 20, 20, 0.95); /* cor do fundo */
     color: white;
-
     padding: 40px;
-
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
 }
 
-
 /* Título */
-
 .menu h1 {
     width: 100%;
-
     font-size: 2.5rem;
-
     margin: 0 0 40px 0;
-
     text-align: center;
-
     white-space: nowrap;
 }
 
-
 /* Container dos botões */
-
 .botoes-container {
     width: 100%;
     max-width: 1200px;
-
     display: grid;
-
     grid-template-columns: repeat(4, minmax(0, 1fr));
-
     gap: 20px;
 }
 
-
 /* Botões */
-
 .botoes-container button {
     width: 100%;
-
     min-height: 90px;
-
     padding: 15px;
-
     border: none;
     border-radius: 10px;
-
     background: aquamarine;
-
     color: black;
-
     font-weight: bold;
-
     cursor: pointer;
-
     transition: 0.3s;
-
     font-size: 1rem;
-
     white-space: normal;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     text-align: center;
 }
 
-
 /* Efeito dos botões */
-
 .botoes-container button:hover {
     transform: scale(1.05);
-
     background: #5fffd2;
-
     box-shadow: 0 0 10px rgba(95, 255, 210, 0.5);
 }
 
-
 /* Efeito ao clicar */
-
 .botoes-container button:active {
     transform: scale(0.97);
 }
 
-
 /* CELULAR */
-
 @media (max-width: 767px) {
 
     body {
@@ -149,245 +107,129 @@ body {
         overflow-x: hidden;
     }
 
-
     /* Menu ocupa toda a tela */
-
     .menu {
         width: 100%;
-
         min-height: 100dvh;
-
         height: auto;
-
         padding: 20px 15px 30px;
-
         display: flex;
-
         flex-direction: column;
-
         align-items: center;
-
         justify-content: flex-start;
-
         background: rgba(20, 20, 20, 0.96);
     }
 
-
     /* Título no celular */
-
     .menu h1 {
         width: 100%;
-
         font-size: 1.5rem;
-
         margin: 0 0 20px 0;
-
         text-align: center;
-
         white-space: normal;
     }
 
-
     /* BOTÕES VERTICAIS NO CELULAR */
-
     .botoes-container {
         width: 100%;
-
         display: flex;
-
         flex-direction: column;
-
         align-items: stretch;
-
         gap: 10px;
     }
-
 
     .botoes-container button,
     .botoes-container button:first-child {
         display: block;
-
         width: 100%;
-
         min-height: 48px;
-
         margin: 0;
-
         padding: 12px 10px;
-
         font-size: 14px;
-
         line-height: 1.2;
-
         white-space: normal;
     }
-
 
     .botoes-container button:hover {
         transform: none;
     }
-
 }
 
-
 /* TELAS MUITO PEQUENAS */
-
 @media (max-width: 400px) {
 
     .menu {
         padding: 16px 12px 25px;
     }
 
-
     .menu h1 {
         font-size: 1.3rem;
-
         margin-bottom: 16px;
     }
-
 
     .botoes-container {
         gap: 8px;
     }
 
-
     .botoes-container button {
         min-height: 46px;
-
         padding: 10px 8px;
-
         font-size: 13px;
     }
 
 }
 
-
 /* TELAS GRANDES */
-
 @media (min-width: 1400px) {
-
     .botoes-container {
         max-width: 1400px;
-
         grid-template-columns: repeat(5, minmax(0, 1fr));
-
         gap: 20px;
     }
-
 }
 
 </style>
 
-
 <script>
 
 function abrirJogo(url) {
-
     window.open(
-        url,
-        '_blank',
-        'noopener,noreferrer'
+        url, '_blank', 'noopener,noreferrer'
     );
-
 }
 
 </script>
 
 </head>
 
-
 <body>
 
-
 <!-- MENU DE JOGOS -->
-
 <div class="menu">
 
     <h1>MEUS JOGOS</h1>
 
-
     <div class="botoes-container">
 
-
-        <button onclick="abrirJogo('card_game/index_card_game.html')">
-            TCG
-        </button>
-
-
-        <button onclick="abrirJogo('amogus/amogus.html')">
-            Amogus
-        </button>
-
-
-        <button onclick="abrirJogo('sapo/sapo.html')">
-            Sapo
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/corrida3D.html')">
-            Corrida 3D
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/nave.html')">
-            Nave Espacial
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/jogo_da_velha.html')">
-            Jogo da Velha
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/jogo_da_vida.html')">
-            Jogo da Vida
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/transformador.html')">
-            Transformador de Imagens
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/treinador.html')">
-            Comparador de Imagens
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/gerador_de_qrcode.html')">
-            Gerador de QRCode
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/damas.html')">
-            Damas
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/chuva_verde.html')">
-            Chuva verde
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/queda.html')">
-            Queda
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/portas_logicas.html')">
-            Portas Lógicas
-        </button>
-
-
-        <button onclick="abrirJogo('jogos_simples/movimento.html')">
-            Censor de movimento
-        </button>
-
+        <button onclick="abrirJogo('card_game/index_card_game.html')">TCG</button>
+        <button onclick="abrirJogo('amogus/amogus.html')">Amogus</button>
+        <button onclick="abrirJogo('sapo/sapo.html')">Sapo</button>
+        <button onclick="abrirJogo('jogos_simples/corrida3D.html')">Corrida 3D</button>
+        <button onclick="abrirJogo('jogos_simples/nave.html')">Nave Espacial</button>
+        <button onclick="abrirJogo('jogos_simples/jogo_da_velha.html')">Jogo da Velha</button>
+        <button onclick="abrirJogo('jogos_simples/jogo_da_vida.html')">Jogo da Vida</button>
+        <button onclick="abrirJogo('jogos_simples/transformador.html')">Transformador de Imagens</button>
+        <button onclick="abrirJogo('jogos_simples/treinador.html')">Comparador de Imagens</button>
+        <button onclick="abrirJogo('jogos_simples/gerador_de_qrcode.html')">Gerador de QRCode</button>
+        <button onclick="abrirJogo('jogos_simples/damas.html')">Damas</button>
+        <button onclick="abrirJogo('jogos_simples/chuva_verde.html')">Chuva verde</button>
+        <button onclick="abrirJogo('jogos_simples/queda.html')">Queda</button>
+        <button onclick="abrirJogo('jogos_simples/portas_logicas.html')">Portas Lógicas</button>
+        <button onclick="abrirJogo('jogos_simples/movimento.html')">Censor de movimento</button>
 
     </div>
 
 </div>
-
 
 </body>
 </html>

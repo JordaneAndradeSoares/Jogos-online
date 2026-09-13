@@ -67,6 +67,8 @@ function revealFaceDownCard(index, owner = 'p1') {
 
     card._activeStatApplied = false;
     card._activeTickedTurn = null;
+    card._activeTarget = null;
+    card._activeTargetOwner = null;
     card.isStunned = false;
     card.stunReason = null;
     card.isResting = false;

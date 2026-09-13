@@ -132,7 +132,7 @@
         <h3 style="color:white;">Como deseja implantar esta carta?</h3>
         <div class="modal-content">
             <button class="action-btn" onclick="confirmPlay(false)">Implantar Ativa (Pagar Custo)</button>
-            <button class="action-btn" onclick="confirmPlay(true)">Implantar Oculta (Criatura/Terreno • Custo 0, 0/1)</button>
+            <button class="action-btn" onclick="confirmPlay(true)">Implantar Oculta (Criatura/Terreno • Custo 0, nulo/1)</button>
             <button class="action-btn" style="background: #d63031;" onclick="closeModal()">Cancelar</button>
         </div>
     </div>
@@ -159,6 +159,13 @@
         <h3 style="color:white; margin-bottom: 10px;" id="gy-modal-title">Arquivo de Unidades</h3>
         <div class="gy-modal-content" id="gy-modal-cards"></div>
         <button class="action-btn" style="margin-top: 15px; background: #636e72;" onclick="closeGraveyardModal()">Fechar</button>
+    </div>
+
+    <div class="modal" id="effect-target-modal">
+        <h3 style="color:white;" id="effect-target-modal-title">Escolha o alvo</h3>
+        <div class="effect-target-energy" id="effect-target-energy">Energia disponível: 0</div>
+        <div class="effect-target-modal-content" id="effect-target-modal-cards"></div>
+        <button class="action-btn" style="background:#636e72; margin-top:15px;" onclick="fecharSelecaoDeAlvoDoEfeito(true)">Cancelar</button>
     </div>
 
     <div class="modal" id="attack-modal">

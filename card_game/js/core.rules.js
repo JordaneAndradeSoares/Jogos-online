@@ -74,6 +74,10 @@ function jogadorPodeJogarCarta(playerKey, carta, faceDown = false) {
 function prepararCartaFaceDown(carta, jogador) {
     if (!carta || !jogador) return false;
 
+    if (typeof removerEfeitosAtivosDaCarta === 'function') {
+        removerEfeitosAtivosDaCarta(carta);
+    }
+
     carta._faceDownOriginalCost =
         carta.baseCost ??
         carta.custoBase ??

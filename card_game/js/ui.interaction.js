@@ -102,9 +102,57 @@ function handleCardClick(owner, zone, index) {
         if (carta.type === 'efeito') {
             confirmPlay(false);
         } else {
-            document.getElementById(
-                'play-modal'
-            ).style.display = 'flex';
+            const modal = document.getElementById('play-modal');
+            const titulo = modal?.querySelector('h3');
+            const conteudo = modal?.querySelector('.modal-content');
+
+            if (modal && conteudo) {
+                let indicadorEnergia = document.getElementById(
+                    'play-modal-energy'
+                );
+
+                if (!indicadorEnergia) {
+                    indicadorEnergia = document.createElement('div');
+                    indicadorEnergia.id = 'play-modal-energy';
+
+                    indicadorEnergia.style.cssText =
+                        'margin:10px 0 15px;padding:10px;border:1px solid rgba(0,255,255,.35);border-radius:8px;background:rgba(0,0,0,.25);text-align:center;font-weight:bold;color:#00ffff;';
+
+                    conteudo.insertBefore(
+                        indicadorEnergia,
+                        conteudo.firstChild
+                    );
+                }
+
+                const custo = obterCustoOriginalDaCarta(carta);
+
+                indicadorEnergia.innerText =
+                    `Energia atual: ${jogador.energy}/${jogador.maxEnergy} • Custo: ${custo}`;
+
+                const botoesImplantacao = conteudo.querySelectorAll('button');
+                let botaoImplantacaoAtiva = null;
+
+                botoesImplantacao.forEach((botao) => {
+                    if (botao.textContent.includes('Implantar Ativa')) {
+                        botaoImplantacaoAtiva = botao;
+                    }
+                });
+
+                if (botaoImplantacaoAtiva) {
+                    const podePagarCusto = jogador.energy >= custo;
+                    botaoImplantacaoAtiva.disabled = !podePagarCusto;
+                    botaoImplantacaoAtiva.style.opacity = podePagarCusto ? '1' : '0.5';
+                    botaoImplantacaoAtiva.style.cursor = podePagarCusto ? 'pointer' : 'not-allowed';
+                    botaoImplantacaoAtiva.style.filter = podePagarCusto ? 'none' : 'grayscale(1)';
+                }
+
+                if (titulo) {
+                    titulo.innerText =
+                        `Como deseja implantar esta carta?`;
+                }
+
+                modal.style.display = 'flex';
+            }
         }
 
         return;

@@ -1,170 +1,137 @@
 const CardEffects = {
     damageOpponent(context, amount) {
-        const target = context.owner === 'p1' ? 'p2' : 'p1';
-        const damage = Math.max(0, Number(amount) || 0);
-
-        if (damage <= 0) return false;
-
-        damagePlayer(target, damage);
-
-        if (typeof showToast === 'function') {
-            showToast(`${context.card?.name || 'Efeito'}: causou ${damage} de dano direto.`, "success");
-        }
-
+        const alvo = context.owner === 'p1' ? 'p2' : 'p1';
+        const dano = Math.max(0, Number(amount) || 0);
+        if (dano <= 0) return false;
+        damagePlayer(alvo, dano);
+        showToast?.(`${context.card?.name || 'Efeito'}: causou ${dano} de dano direto.`, 'success');
         return true;
     },
 
     healSelf(context, amount) {
-        const heal = Math.max(0, Number(amount) || 0);
-        if (heal <= 0) return false;
-
-        healPlayer(context.owner, heal);
-
-        if (typeof showToast === 'function') {
-            showToast(`${context.card?.name || 'Efeito'}: restaurou ${heal} de vida.`, "success");
-        }
-
+        const cura = Math.max(0, Number(amount) || 0);
+        if (cura <= 0) return false;
+        healPlayer(context.owner, cura);
+        showToast?.(`${context.card?.name || 'Efeito'}: restaurou ${cura} de vida.`, 'success');
         return true;
     },
 
     buffSelf(context, atkBonus = 0, defBonus = 0) {
-        const card = context.card;
-        if (!card) return false;
+        const carta = context.card;
+        if (!carta) return false;
 
-        // Bônus de ATIVO e CAMPO são aplicados apenas uma vez enquanto a carta
-        // permanecer em campo. Isso evita somar o mesmo bônus novamente a cada turno.
-        if (card._activeStatApplied) return false;
+        const ataque = Number(atkBonus) || 0;
+        const defesa = Number(defBonus) || 0;
 
-        const atk = Number(atkBonus) || 0;
-        const def = Number(defBonus) || 0;
+        if (carta._activeStatApplied) return false;
 
-        if (card.atk !== null) {
-            card.atk = (Number(card.atk) || 0) + atk;
+        if (carta.atk !== null && carta.atk !== undefined) {
+            carta.atk = (Number(carta.atk) || 0) + ataque;
         }
+        carta.def = (Number(carta.def) || 0) + defesa;
+        carta.currentDef = (Number(carta.currentDef ?? carta.def) || 0) + defesa;
 
-        card.def = (Number(card.def) || 0) + def;
-        card.currentDef = (Number(card.currentDef ?? card.def) || 0) + def;
+        carta._activeStatApplied = true;
 
-        card._activeStatApplied = true;
-
-        if (typeof showToast === 'function') {
-            const parts = [];
-            if (atk !== 0) parts.push(`${atk > 0 ? '+' : ''}${atk} ATK`);
-            if (def !== 0) parts.push(`${def > 0 ? '+' : ''}${def} DEF`);
-            showToast(`${card.name}: ${parts.join(' / ') || 'efeito aplicado'}.`, "success");
-        }
-
+        const partes = [];
+        if (ataque) partes.push(`${ataque > 0 ? '+' : ''}${ataque} ATK`);
+        if (defesa) partes.push(`${defesa > 0 ? '+' : ''}${defesa} DEF`);
+        showToast?.(`${carta.name}: ${partes.join(' / ') || 'efeito ativo aplicado'}.`, 'success');
         return true;
     },
 
-    buffOtherCreature(context, defBonus = 2) {
-        const owner = context.owner;
-        const source = context.card;
-        const player = state.players[owner];
-
-        if (!player) return false;
-
-        const field = player.field.filter(c =>
-            c &&
-            c.type === 'criatura' &&
-            !c.isFaceDown &&
-            c !== source
-        );
-
-        if (!field.length) {
-            if (typeof showToast === 'function') {
-                showToast('Não há outra criatura aliada para receber o bônus de DEF.', "warning");
-            }
-            return false;
-        }
-
-        // Protege primeiro a criatura aliada com menor DEF atual.
-        const target = [...field].sort((a, b) =>
-            (Number(a.currentDef ?? a.def) - Number(b.currentDef ?? b.def)) ||
-            ((Number(a.atk) || 0) - (Number(b.atk) || 0))
-        )[0];
+    buffTarget(context, defBonus = 1) {
+        const alvo = context.targetCard;
+        const origem = context.card;
+        const jogador = state.players[context.owner];
+        if (!alvo || !jogador || !jogador.field.includes(alvo)) return false;
+        if (alvo === origem) return false;
 
         const bonus = Number(defBonus) || 0;
-        target.def = (Number(target.def) || 0) + bonus;
-        target.currentDef = (Number(target.currentDef ?? target.def) || 0) + bonus;
+        if (!bonus) return false;
 
-        if (typeof showToast === 'function') {
-            showToast(
-                `${source?.name || 'Efeito'}: ${target.name} recebeu +${bonus} DEF.`,
-                "success"
-            );
+        const eAtivo = context.trigger === 'ativo';
+
+        if (eAtivo) {
+            alvo._activeDefModifiers ??= [];
+            const existente = alvo._activeDefModifiers.find(modificador => modificador.source === origem);
+            if (existente) return false;
+
+            alvo._activeDefModifiers.push({ source: origem, bonus });
         }
 
+        alvo.def = (Number(alvo.def) || 0) + bonus;
+        alvo.currentDef = (Number(alvo.currentDef ?? alvo.def) || 0) + bonus;
+
+        showToast?.(`${origem?.name || 'Efeito'}: ${alvo.name} recebeu +${bonus} DEF.`, 'success');
         return true;
     },
 
-    damageEnemyTarget(context, amount) {
-        const targetKey = context.owner === 'p1' ? 'p2' : 'p1';
-        const enemy = state.players[targetKey];
+    damageTarget(context, amount) {
+        const alvo = context.targetCard;
+        const donoAlvo = context.targetOwner;
+        if (!alvo || !donoAlvo || !state.players[donoAlvo]?.field.includes(alvo)) return false;
 
-        if (!enemy) return false;
+        const dano = Math.max(0, Number(amount) || 0);
+        if (!dano) return false;
 
-        const damage = Math.max(0, Number(amount) || 0);
-        if (damage <= 0) return false;
-
-        const enemyField = enemy.field.filter(c =>
-            c &&
-            (c.type === 'criatura' || c.type === 'terreno') &&
-            !c.isFaceDown
-        );
-
-        // Sem alvo válido, o efeito de dano em criatura não vira dano direto.
-        // Isso respeita exatamente o texto da carta.
-        if (!enemyField.length) {
-            if (typeof showToast === 'function') {
-                showToast(`${context.card?.name || 'Efeito'}: não há alvo inimigo válido.`, "warning");
-            }
+        if (alvo.isFaceDown) {
+            showToast?.(`${context.card?.name || 'Efeito'} não pode atingir uma carta virada para baixo.`, 'warning');
             return false;
         }
 
-        const targetCard = [...enemyField].sort((a, b) =>
-            (Number(a.currentDef ?? a.def) - Number(b.currentDef ?? b.def)) ||
-            ((Number(a.atk) || 0) - (Number(b.atk) || 0))
-        )[0];
+        alvo.currentDef = (Number(alvo.currentDef ?? alvo.def) || 0) - dano;
+        showToast?.(`${context.card?.name || 'Efeito'} causou ${dano} dano em ${alvo.name}.`, 'success');
 
-        targetCard.currentDef = (Number(targetCard.currentDef ?? targetCard.def) || 0) - damage;
-
-        if (typeof showToast === 'function') {
-            showToast(
-                `${context.card?.name || 'Efeito'} causou ${damage} dano em ${targetCard.name}.`,
-                "success"
-            );
+        if (alvo.currentDef <= 0) {
+            state.players[donoAlvo].field = state.players[donoAlvo].field.filter(carta => carta !== alvo);
+            sendCardToGraveyard(alvo, donoAlvo, true);
+            showToast?.(`${alvo.name} foi destruída pelo efeito.`, 'warning');
         }
-
-        if (targetCard.currentDef <= 0) {
-            enemy.field = enemy.field.filter(c => c !== targetCard);
-            sendCardToGraveyard(targetCard, targetKey, true);
-
-            if (typeof showToast === 'function') {
-                showToast(`${targetCard.name} foi destruído pelo efeito.`, "warning");
-            }
-        }
-
         return true;
     },
 
     stunTarget(context) {
-        const targetKey = context.owner === 'p1' ? 'p2' : 'p1';
-        const target = state.players[targetKey]?.field.find(c =>
-            c.type === 'criatura' && !c.isFaceDown
-        );
+        const alvo = context.targetCard;
+        const donoAlvo = context.targetOwner;
+        if (!alvo || !donoAlvo || !state.players[donoAlvo]?.field.includes(alvo)) return false;
+        if (alvo.type !== 'criatura' || alvo.isFaceDown) return false;
 
-        if (!target) return false;
-
-        target.isStunned = true;
-        target.stunReason = 'effect';
-        target.casusBelli = 0;
-        target.attackedThisTurn = false;
-
-        if (typeof showToast === 'function') {
-            showToast(`${target.name} está atordoada e não pode atacar nem defender.`, "warning");
-        }
-
+        alvo.isStunned = true;
+        alvo.stunReason = 'effect';
+        alvo.casusBelli = 0;
+        alvo.attackedThisTurn = false;
+        showToast?.(`${alvo.name} está atordoada e não pode atacar nem defender.`, 'warning');
         return true;
     }
 };
+
+function removerEfeitosAtivosDaCarta(carta) {
+    if (!carta) return;
+
+    if (carta._activeDefModifiers?.length) {
+        for (const modificador of carta._activeDefModifiers) {
+            const origem = modificador.source;
+            if (!origem) continue;
+            origem._activeTarget = origem._activeTarget === carta ? null : origem._activeTarget;
+        }
+        carta._activeDefModifiers = [];
+    }
+
+    for (const jogador of Object.values(state.players || {})) {
+        for (const outraCarta of jogador.field || []) {
+            if (!outraCarta?._activeDefModifiers?.length) continue;
+            const modificadoresRestantes = outraCarta._activeDefModifiers.filter(modificador => modificador.source !== carta);
+            const removidos = outraCarta._activeDefModifiers.filter(modificador => modificador.source === carta);
+            for (const modificador of removidos) {
+                outraCarta.def = (Number(outraCarta.def) || 0) - modificador.bonus;
+                outraCarta.currentDef = (Number(outraCarta.currentDef ?? outraCarta.def) || 0) - modificador.bonus;
+            }
+            outraCarta._activeDefModifiers = modificadoresRestantes;
+        }
+    }
+
+    carta._activeStatApplied = false;
+    carta._activeTickedTurn = null;
+    carta._activeTarget = null;
+}

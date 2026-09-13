@@ -131,7 +131,7 @@ function jogarCartaDoInimigo(indiceDaCarta) {
 
         if (typeof showToast === 'function') {
             showToast(
-                `Inimigo usou a tecnologia ${carta.name}.`,
+                `Inimigo usou a efeito ${carta.name}.`,
                 'info'
             );
         }

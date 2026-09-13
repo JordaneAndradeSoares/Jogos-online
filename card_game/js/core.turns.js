@@ -50,31 +50,77 @@ const effectFn = state.effectStack.pop();
 }
 
 function triggerEffect(triggerType, card, context = {}) {
-if (!card || !card.effects || typeof card.effects[triggerType] !== 'function') {
-return false;
-}
+    if (!card || !card.effects || typeof card.effects[triggerType] !== 'function') {
+        return false;
+    }
 
+    const owner = context.owner || (
+        state.players.p1.field.includes(card) ? 'p1' : 'p2'
+    );
 
-const effectContext = {
-    ...context,
-    owner: context.owner || (
-        state.players.p1.field.includes(card)
-            ? 'p1'
-            : 'p2'
-    ),
-    card,
-    trigger: triggerType
-};
+    if (
+        typeof efeitoPrecisaDeAlvo === 'function' &&
+        efeitoPrecisaDeAlvo(card) &&
+        !context.targetCard
+    ) {
+        const alvoAtivoAindaNoCampo =
+            triggerType === 'ativo' &&
+            card._activeTarget &&
+            state.players[card._activeTargetOwner]?.field?.includes(card._activeTarget);
 
-pushEffect(() => card.effects[triggerType](effectContext));
+        if (alvoAtivoAindaNoCampo) {
+            context.targetCard = card._activeTarget;
+            context.targetOwner = card._activeTargetOwner;
+        } else {
+            if (triggerType === 'ativo') {
+                card._activeTarget = null;
+                card._activeTargetOwner = null;
+            }
 
-resolveEffectStack();
+            const alvos = obterAlvosValidosDoEfeito(card, owner);
 
-if (typeof renderUI === 'function') renderUI();
+            if (!alvos.length) {
+                showToast?.(`${card.name}: não há alvo válido para este efeito.`, 'warning');
+                return false;
+            }
 
-return true;
+            if (owner === 'p1' && typeof abrirSelecaoDeAlvoDoEfeito === 'function') {
+                abrirSelecaoDeAlvoDoEfeito(card, triggerType, owner, context);
+                return 'pending';
+            }
 
+            const alvoEscolhido = typeof escolherAlvoDoInimigo === 'function'
+                ? escolherAlvoDoInimigo(alvos, card, triggerType)
+                : alvos[0];
 
+            if (!alvoEscolhido) return false;
+            context.targetCard = alvoEscolhido.carta;
+            context.targetOwner = alvoEscolhido.owner;
+
+            if (triggerType === 'ativo') {
+                card._activeTarget = context.targetCard;
+                card._activeTargetOwner = context.targetOwner;
+            }
+        }
+    }
+
+    if (triggerType === 'ativo' && context.targetCard) {
+        card._activeTarget = context.targetCard;
+        card._activeTargetOwner = context.targetOwner;
+    }
+
+    const efeitoContexto = {
+        ...context,
+        owner,
+        card,
+        trigger: triggerType
+    };
+
+    pushEffect(() => card.effects[triggerType](efeitoContexto));
+    resolveEffectStack();
+
+    if (typeof renderUI === 'function') renderUI();
+    return true;
 }
 
 
