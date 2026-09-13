@@ -87,6 +87,13 @@ function prepararCartaFaceDown(carta, jogador) {
     carta._faceDownOriginalDef = carta.def;
     carta._faceDownOriginalCurrentDef =
         carta.currentDef ?? carta.def;
+    carta._faceDownAtkBonus = 0;
+
+    // Enquanto estiver virada para baixo, a carta usa uma defesa própria de 1.
+    // Buffs aplicados enquanto oculta são acumulados separadamente para
+    // continuarem válidos quando a carta for revelada.
+    carta._faceDownDefBonus = 0;
+    carta._faceDownDamage = 0;
 
     carta.cost = 0;
     carta.atk = null;

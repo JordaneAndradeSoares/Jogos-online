@@ -516,10 +516,17 @@ state.activeAttack = null;
             });
         }
 
-        card.currentDef =
-            card.def ??
-            card.baseDef ??
-            card.currentDef;
+        /*
+         * Cartas ocultas possuem uma DEF própria (1 + buffs - dano).
+         * Não recalculamos currentDef a partir de card.def aqui, pois isso
+         * apagaria o dano já sofrido enquanto a carta estava oculta.
+         */
+        if (!card.isFaceDown) {
+            card.currentDef =
+                card.def ??
+                card.baseDef ??
+                card.currentDef;
+        }
 
         if (card.type !== 'criatura') return;
 

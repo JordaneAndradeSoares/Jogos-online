@@ -128,15 +128,24 @@ const CardEffects = {
 
         /*
          * ATK
+         *
+         * Enquanto a carta estiver oculta, o ATK continua sendo exibido
+         * como "—", mas o bônus é armazenado para ser aplicado quando ela
+         * for revelada. Assim nenhum buff se perde por causa da face-down.
          */
-        if (
-            ataque !== 0 &&
-            carta.atk !== null &&
-            carta.atk !== undefined
-        ) {
-            carta.atk =
-                (Number(carta.atk) || 0) +
-                ataque;
+        if (ataque !== 0) {
+            if (carta.isFaceDown) {
+                carta._faceDownAtkBonus =
+                    (Number(carta._faceDownAtkBonus) || 0) + ataque;
+            }
+            else if (
+                carta.atk !== null &&
+                carta.atk !== undefined
+            ) {
+                carta.atk =
+                    (Number(carta.atk) || 0) +
+                    ataque;
+            }
         }
 
         /*
@@ -299,26 +308,16 @@ const CardEffects = {
         if (
             alvo.isFaceDown
         ) {
+            // A carta oculta continua sendo 0/1. O bônus é aplicado
+            // sobre essa defesa 1 e fica separado dos atributos originais.
+            alvo._faceDownDefBonus =
+                (Number(alvo._faceDownDefBonus) || 0) + bonus;
 
-            const defesaOcultaAtual =
-                Number(
-                    alvo._faceDownOriginalDef
-                ) || 0;
+            alvo.def =
+                1 + (Number(alvo._faceDownDefBonus) || 0);
 
-            const defesaAtualOculta =
-                Number(
-                    alvo._faceDownOriginalCurrentDef ??
-                    defesaOcultaAtual
-                ) || 0;
-
-
-            alvo._faceDownOriginalDef =
-                defesaOcultaAtual +
-                bonus;
-
-            alvo._faceDownOriginalCurrentDef =
-                defesaAtualOculta +
-                bonus;
+            alvo.currentDef =
+                (Number(alvo.currentDef) || 1) + bonus;
         }
 
         /*         
@@ -412,32 +411,20 @@ const CardEffects = {
         if (
             alvo.isFaceDown
         ) {
-
+            // Dano em carta oculta é aplicado sobre a DEF oculta atual,
+            // que começa em 1 (e pode ter sido aumentada por buffs).
             let defesaAtual =
-                Number(
-                    alvo._faceDownOriginalCurrentDef
-                );
+                Number(alvo.currentDef);
 
-            if (
-                !Number.isFinite(defesaAtual)
-            ) {
+            if (!Number.isFinite(defesaAtual)) {
                 defesaAtual =
-                    Number(
-                        alvo._faceDownOriginalDef
-                    );
-
-                if (
-                    !Number.isFinite(defesaAtual)
-                ) {
-                    defesaAtual = 1;
-                }
+                    1 + (Number(alvo._faceDownDefBonus) || 0);
             }
 
             defesaAtual -= dano;
-
-
-            alvo._faceDownOriginalCurrentDef =
-                defesaAtual;
+            alvo.currentDef = defesaAtual;
+            alvo._faceDownDamage =
+                (Number(alvo._faceDownDamage) || 0) + dano;
 
             showToast?.(
                 `${context.card?.name || 'Efeito'} causou ${dano} de dano em uma carta virada para baixo.`,
@@ -446,21 +433,32 @@ const CardEffects = {
 
             /*
              * Se a defesa chegou a zero,
-             * a carta é destruída sem ser revelada.
+             * a carta é destruída imediatamente.
+             *
+             * IMPORTANTE:
+             * A carta precisa sair do campo antes de qualquer
+             * renderização/novo processamento. Também a marcamos
+             * como destruída antes de enviá-la ao cemitério, para
+             * que os gatilhos [Destruído] recebam o estado correto.
              */
-            if (
-                defesaAtual <= 0
-            ) {
+            if (defesaAtual <= 0) {
 
                 removerEfeitosAtivosDaCarta(
                     alvo
                 );
 
-                jogadorAlvo.field =
-                    jogadorAlvo.field.filter(
-                        cartaDoCampo =>
-                            cartaDoCampo !== alvo
+                const indiceNoCampo =
+                    jogadorAlvo.field.indexOf(alvo);
+
+                if (indiceNoCampo !== -1) {
+                    jogadorAlvo.field.splice(
+                        indiceNoCampo,
+                        1
                     );
+                }
+
+                alvo.isDestroyed = true;
+                alvo.isFaceDown = false;
 
                 if (
                     typeof sendCardToGraveyard === 'function'
@@ -470,6 +468,13 @@ const CardEffects = {
                         donoAlvo,
                         true
                     );
+                } else {
+                    jogadorAlvo.gy =
+                        Array.isArray(jogadorAlvo.gy)
+                            ? jogadorAlvo.gy
+                            : [];
+
+                    jogadorAlvo.gy.push(alvo);
                 }
 
                 showToast?.(
@@ -601,6 +606,7 @@ const CardEffects = {
     }
 };
 
+
 /*
  * REMOVE EFEITOS ATIVOS DE UMA CARTA
  *
@@ -717,21 +723,14 @@ function removerEfeitosAtivosDaCarta(carta) {
                 if (
                     outraCarta.isFaceDown
                 ) {
+                    outraCarta._faceDownDefBonus =
+                        (Number(outraCarta._faceDownDefBonus) || 0) - bonus;
 
-                    outraCarta._faceDownOriginalDef =
-                        (
-                            Number(
-                                outraCarta._faceDownOriginalDef
-                            ) || 0
-                        ) - bonus;
+                    outraCarta.def =
+                        1 + (Number(outraCarta._faceDownDefBonus) || 0);
 
-                    outraCarta._faceDownOriginalCurrentDef =
-                        (
-                            Number(
-                                outraCarta._faceDownOriginalCurrentDef ??
-                                outraCarta._faceDownOriginalDef
-                            ) || 0
-                        ) - bonus;
+                    outraCarta.currentDef =
+                        (Number(outraCarta.currentDef) || 1) - bonus;
                 }
 
                 else {

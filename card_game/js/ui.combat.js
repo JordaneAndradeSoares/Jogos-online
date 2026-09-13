@@ -16,7 +16,7 @@ function confirmAttack() {
     closeAttackModal();
 
     if (!cartaPodeAtacar(attackerCard)) {
-        showToast("Esta criatura não pode atacar agora.", "warning");
+        showToast("Esta carta não pode atacar.", "warning");
         return;
     }
 
@@ -44,20 +44,37 @@ function confirmAttack() {
         let blockerCard = p2.field[blockerIndex];
         showToast(`${attackerCard.name} atacou, mas foi bloqueado por ${blockerCard.name}!`, "warning");
 
-        const blockerAtk = blockerCard.type === 'terreno' ? 0 : (Number(blockerCard.atk) || 0);
-        const attackerAtk = Number(attackerCard.atk) || 0;
-        blockerCard.currentDef -= attackerAtk;
-        attackerCard.currentDef -= blockerAtk;
+        const blockerAtk =
+            blockerCard.isFaceDown
+                ? 0
+                : (
+                    blockerCard.type === 'terreno'
+                        ? 0
+                        : Number(blockerCard.atk) || 0
+                );
+
+        const attackerAtk =
+            Number(attackerCard.atk) || 0;
+
+        blockerCard.currentDef =
+            (Number(blockerCard.currentDef) || 0) - attackerAtk;
+
+        attackerCard.currentDef =
+            (Number(attackerCard.currentDef) || 0) - blockerAtk;
 
         let destroyed = [];
         if (blockerCard.currentDef <= 0) {
-            sendCardToGraveyard(blockerCard, 'p2', true);
             p2.field = p2.field.filter(c => c !== blockerCard);
+            blockerCard.isDestroyed = true;
+            blockerCard.isFaceDown = false;
+            sendCardToGraveyard(blockerCard, 'p2', true);
             destroyed.push(blockerCard.name);
         }
         if (attackerCard.currentDef <= 0) {
-            sendCardToGraveyard(attackerCard, 'p1', true);
             player.field = player.field.filter(c => c !== attackerCard);
+            attackerCard.isDestroyed = true;
+            attackerCard.isFaceDown = false;
+            sendCardToGraveyard(attackerCard, 'p1', true);
             destroyed.push(attackerCard.name);
         }
 

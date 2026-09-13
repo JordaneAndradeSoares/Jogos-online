@@ -88,6 +88,13 @@ function sendCardToGraveyard(card, playerKey, isDestroyed = false) {
         card.currentDef = card.baseDef;
     }
     card.isFaceDown = false;
+    delete card._faceDownOriginalCost;
+    delete card._faceDownOriginalAtk;
+    delete card._faceDownOriginalDef;
+    delete card._faceDownOriginalCurrentDef;
+    delete card._faceDownDefBonus;
+    delete card._faceDownDamage;
+    delete card._faceDownAtkBonus;
     card.isStunned = false;
     card.stunnedUntilTurn = null;
     card.attackedThisTurn = false;

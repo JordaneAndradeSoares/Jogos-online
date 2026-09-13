@@ -43,27 +43,47 @@ function revealFaceDownCard(index, owner = 'p1') {
 
     player.energy -= custoRevelar;
 
+    const atkBonus =
+        Number(card._faceDownAtkBonus) || 0;
+
     card.isFaceDown = false;
     card.cost = custoRevelar;
 
-    card.atk =
+    const atkOriginal =
         card._faceDownOriginalAtk ??
         card.atk;
 
+    card.atk =
+        atkOriginal === null || atkOriginal === undefined
+            ? null
+            : Number(atkOriginal) + atkBonus;
+
+    const defBonus =
+        Number(card._faceDownDefBonus) || 0;
+
+    const faceDownDamage =
+        Number(card._faceDownDamage) || 0;
+
     card.def =
-        card._faceDownOriginalDef ??
-        card.def;
+        (Number(
+            card._faceDownOriginalDef ??
+            card.def
+        ) || 0) + defBonus;
 
     card.currentDef =
-        card._faceDownOriginalCurrentDef ??
-        card.def ??
-        card.baseDef ??
-        1;
+        (Number(
+            card._faceDownOriginalCurrentDef ??
+            card.def ??
+            card.baseDef
+        ) || 0) + defBonus - faceDownDamage;
 
     delete card._faceDownOriginalCost;
     delete card._faceDownOriginalAtk;
     delete card._faceDownOriginalDef;
     delete card._faceDownOriginalCurrentDef;
+    delete card._faceDownDefBonus;
+    delete card._faceDownDamage;
+    delete card._faceDownAtkBonus;
 
     card._activeStatApplied = false;
     card._activeTickedTurn = null;
@@ -263,23 +283,29 @@ function resolveFaceDownBlock(
         'info'
     );
 
-    card.currentDef -= ataqueDoAtacante;
-    attackerCard.currentDef -= ataqueDoBloqueador;
+    card.currentDef =
+        (Number(card.currentDef) || 0) - ataqueDoAtacante;
+
+    attackerCard.currentDef =
+        (Number(attackerCard.currentDef) || 0) - ataqueDoBloqueador;
 
     const cartasDestruidas = [];
 
     if (card.currentDef <= 0) {
-        sendCardToGraveyard(
-            card,
-            'p1',
-            true
-        );
-
         player.field =
             player.field.filter(
                 cartaAtual =>
                     cartaAtual !== card
             );
+
+        card.isDestroyed = true;
+        card.isFaceDown = false;
+
+        sendCardToGraveyard(
+            card,
+            'p1',
+            true
+        );
 
         cartasDestruidas.push(
             card.name
@@ -287,17 +313,20 @@ function resolveFaceDownBlock(
     }
 
     if (attackerCard.currentDef <= 0) {
-        sendCardToGraveyard(
-            attackerCard,
-            'p2',
-            true
-        );
-
         jogadorInimigo.field =
             jogadorInimigo.field.filter(
                 cartaAtual =>
                     cartaAtual !== attackerCard
             );
+
+        attackerCard.isDestroyed = true;
+        attackerCard.isFaceDown = false;
+
+        sendCardToGraveyard(
+            attackerCard,
+            'p2',
+            true
+        );
 
         cartasDestruidas.push(
             attackerCard.name

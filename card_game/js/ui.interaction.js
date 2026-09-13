@@ -182,7 +182,7 @@ function handleCardClick(owner, zone, index) {
 
     if (!cartaPodeAtacar(carta)) {
         showToast(
-            "Esta criatura não pode atacar agora.",
+            "Esta carta não pode atacar.",
             "warning"
         );
         return;

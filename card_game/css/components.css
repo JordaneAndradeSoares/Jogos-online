@@ -151,6 +151,24 @@ border-radius: 6px;
 padding: 3px 8px;
 }
 
+/* As estatísticas ocultas usam as mesmas cores das cartas reveladas:
+   verde para bônus e vermelho para redução/dano. */
+.face-down-stats .card-stats-box {
+    position: static;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font-size: inherit;
+}
+
+.card.face-down .stat-up {
+    color: #18a558 !important;
+}
+
+.card.face-down .stat-down {
+    color: #d62828 !important;
+}
+
 .face-down-hint {
 font-size: 9px;
 opacity: .8;
@@ -632,4 +650,10 @@ pointer-events: none;
     opacity: 0.45;
     cursor: not-allowed;
     filter: grayscale(1);
+}
+
+.face-down-cost {
+font-size: 11px;
+font-weight: 900;
+opacity: .95;
 }

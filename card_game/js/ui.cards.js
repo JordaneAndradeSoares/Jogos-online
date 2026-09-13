@@ -14,7 +14,6 @@ const forceClass =
 
 return `<span class="force-dot ${forceClass}" title="${safeForce}" aria-label="${safeForce}"></span>`;
 
-
 }
 
 function getCardStatsHTML(card) {
@@ -22,17 +21,11 @@ if (card.type === 'efeito') return '';
 
 
 const atkVal = card.isFaceDown
-    ? (card._faceDownOriginalAtk ?? card.atk)
+    ? null
     : card.atk;
 
 const defVal = card.isFaceDown
-    ? (
-        card._faceDownOriginalCurrentDef ??
-        card._faceDownOriginalDef ??
-        card.currentDef ??
-        card.def ??
-        0
-    )
+    ? (card.currentDef ?? 1)
     : (
         card.currentDef ??
         card.def ??
@@ -41,13 +34,11 @@ const defVal = card.isFaceDown
 
 const atkBase =
     card.baseAtk ??
-    card._faceDownOriginalAtk ??
     atkVal;
 
-const defBase =
-    card.baseDef ??
-    card._faceDownOriginalDef ??
-    defVal;
+const defBase = card.isFaceDown
+    ? 1
+    : (card.baseDef ?? defVal);
 
 const atkClass =
     atkVal > atkBase
@@ -83,15 +74,11 @@ return `
 
 function getFullCardContent(card) {
 const displayCost = card.isFaceDown
-? (
-card._faceDownOriginalCost ??
-card.baseCost ??
-card.cost
-)
-: (
-card.custoAtual ??
-card.cost
-);
+    ? 0
+    : (
+        card.custoAtual ??
+        card.cost
+    );
 
 
 const displayBaseCost =
@@ -159,203 +146,136 @@ return `
 }
 
 function buildCardHTML(card, owner, zone, index) {
-if (zone === 'gy') {
-const gyStatusHTML = `             <div
-                class="gy-status"
-                style="font-size: 11px; padding: 4px 8px;"             >
-                ${card.isDestroyed ? 'Destruída' : 'Intacta'}             </div>
+    if (zone === 'gy') {
+        const gyStatusHTML = `
+            <div class="gy-status" style="font-size: 11px; padding: 4px 8px;">
+                ${card.isDestroyed ? 'Destruída' : 'Intacta'}
+            </div>
         `;
 
+        return `
+            <div class="card" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; margin: 0;">
+                ${getFullCardContent(card)}
+                ${gyStatusHTML}
+            </div>
+        `;
+    }
 
-    return `
-        <div
-            class="card"
-            style="
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                pointer-events: none;
-                margin: 0;
-            "
-        >
-
-            ${getFullCardContent(card)}
-
-            ${gyStatusHTML}
-
-        </div>
-    `;
-}
-
-const cardId =
-    zone === 'field'
-        ? `id="${owner}-field-card-${index}"`
-        : '';
-
-const clickEvent =
-    zone === 'gy-view' || zone === 'effect-target'
+    const cardId = zone === 'field' ? `id="${owner}-field-card-${index}"` : '';
+    const clickEvent = zone === 'gy-view' || zone === 'effect-target'
         ? ''
         : `onclick="handleCardClick('${owner}', '${zone}', ${index})"`;
 
-/*
- * CARTA VIRADA PARA BAIXO
- *
- * - Ataque NULO.
- * - Pode defender.
- * - Não é considerada atordoada somente por estar oculta.
- * - A carta do jogador mostra o visual verdadeiro ao passar o mouse.
- */
-if (card.isFaceDown && (zone === 'field' || zone === 'effect-target')) {
-    const isOwnCard = owner === 'p1';
+    if (card.isFaceDown && (zone === 'field' || zone === 'effect-target')) {
+        const isOwnCard = owner === 'p1';
 
-    const hiddenContent = `
-        <div class="card-hidden-content">
+        const trueGeneration = card._faceDownOriginalGeneration ?? card.generation ?? 0;
+        const trueCost = card._faceDownOriginalCost ?? card.baseCost ?? card.custoBase ?? card.cost ?? 0;
+        
+        const originalAtk = Number(card._faceDownOriginalAtk ?? card.baseAtk ?? card.atk ?? 0) || 0;
+        const atkBonus = Number(card._faceDownAtkBonus) || 0;
+        const trueAtk = originalAtk + atkBonus;
+        
+        const originalDef = Number(card._faceDownOriginalDef ?? card.baseDef ?? card.def ?? 1) || 1;
+        const defBonus = Number(card._faceDownDefBonus) || 0;
+        const damageTaken = Number(card._faceDownDamage) || 0;
+        const trueDef = originalDef + defBonus - damageTaken;
 
-            <div class="face-down-title">
-                CARTA OCULTA
+        // Tooltip melhorado: exibe a matemática de bônus e dano caso o usuário passe o mouse devagar
+        let atkMod = atkBonus > 0 ? ` (+${atkBonus})` : atkBonus < 0 ? ` (${atkBonus})` : '';
+        let defMod = defBonus > 0 ? ` (+${defBonus})` : defBonus < 0 ? ` (${defBonus})` : '';
+        let dmgMod = damageTaken > 0 ? ` (-${damageTaken} Dano)` : '';
+
+        const tooltip = 
+            `Geração: ${trueGeneration} | ` +
+            `Custo: ${trueCost} | ` +
+            `Ataque: ${originalAtk}${atkMod} = ${trueAtk} | ` +
+            `Defesa: ${originalDef}${defMod}${dmgMod} = ${trueDef}`;
+
+        const hiddenContent = `
+            <div class="card-hidden-content">
+                <div class="face-down-title">CARTA OCULTA</div>
+                <div class="face-down-symbol">?</div>
+                <div class="face-down-cost">Custo 0</div>
+                <div class="face-down-stats">
+                    ${getCardStatsHTML(card)}
+                </div>
+                <div class="face-down-hint">
+                    ${isOwnCard ? 'Passe o mouse para ver' : 'Carta desconhecida'}
+                </div>
             </div>
+        `;
 
-            <div class="face-down-symbol">
-                ?
-            </div>
+        // CRIAMOS UMA CÓPIA "REVELADA" DA CARTA PARA RENDERIZAR O HOVER
+        // Com isFaceDown = false, o getCardStatsHTML vai exibir os status reais
+        // e aplicar corretamente as classes stat-up e stat-down.
+        const revealedCard = {
+            ...card,
+            isFaceDown: false,
+            atk: trueAtk,
+            baseAtk: originalAtk,
+            currentDef: trueDef,
+            baseDef: originalDef,
+            custoAtual: trueCost,
+            custoBase: card._faceDownOriginalCost ?? card.custoBase ?? card.baseCost ?? card.cost ?? 0,
+            generation: trueGeneration
+        };
 
-            <div class="face-down-stats">
-                — / 1
-            </div>
-
-            <div class="face-down-hint">
-                ${
-                    isOwnCard
-                        ? 'Passe o mouse para ver'
-                        : 'Carta desconhecida'
-                }
-            </div>
-
-        </div>
-    `;
-
-    const realContent =
-        isOwnCard
+        const realContent = isOwnCard
             ? `
                 <div class="card-real-content">
-                    ${getFullCardContent(card)}
+                    ${getFullCardContent(revealedCard)}
                 </div>
             `
             : '';
 
+        return `
+            <div class="card face-down ${isOwnCard ? 'own-face-down' : ''}"
+                ${cardId}
+                ${clickEvent}
+                title="${tooltip}"
+                aria-label="Carta oculta — ${tooltip}">
+                
+                ${hiddenContent}
+                ${realContent}
+                
+            </div>
+        `;
+    }
+
+    const isStunned = zone === 'field' && card.type === 'criatura' && !card.isFaceDown && card.isStunned;
+    const isResting = zone === 'field' && card.type === 'criatura' && !isStunned && (card.isResting || card.casusBelli === 0);
+
+    const stunnedHTML = (() => {
+        if (!isStunned) return '';
+        let stunnedClass = 'stunned-effect';
+
+        if (card.stunReason === 'summon') {
+            stunnedClass = 'stunned-summon';
+        } else if (card.stunReason === 'attack' && card.lastAttackTurn === state.turn) {
+            stunnedClass = 'stunned-after-attack';
+        } else if (card.stunReason === 'attack' && card.stunPhase === 'yellow') {
+            stunnedClass = 'stunned-last-turn';
+        }
+
+        return `<div class="stunned-label ${stunnedClass}">ATORDOADO</div>`;
+    })();
+
+    const cardStateClass = isStunned ? ' stunned' : '';
+    const gyStatusHTML = zone === 'gy-view'
+        ? `<div class="gy-status">${card.isDestroyed ? 'Destruída' : 'Intacta'}</div>`
+        : '';
+
     return `
-        <div
-            class="card face-down ${isOwnCard ? 'own-face-down' : ''}"
+        <div class="card${cardStateClass}"
             ${cardId}
             ${clickEvent}
-        >
-
-            ${hiddenContent}
-
-            ${realContent}
-
+            style="${zone === 'gy-view' ? 'cursor:default;' : ''}">
+            
+            ${getFullCardContent(card)}
+            ${stunnedHTML}
+            ${gyStatusHTML}
+            
         </div>
     `;
-}
-
-const isStunned =
-    zone === 'field' &&
-    card.type === 'criatura' &&
-    !card.isFaceDown &&
-    card.isStunned;
-
-const isResting =
-    zone === 'field' &&
-    card.type === 'criatura' &&
-    !isStunned &&
-    (
-        card.isResting ||
-        card.casusBelli === 0
-    );
-
-const stunnedHTML = (() => {
-    if (!isStunned) return '';
-
-    let stunnedClass = 'stunned-effect';
-
-    /*
-     * Criatura acabou de entrar virada para cima.
-     *
-     * ATORDOADO em vermelho.
-     */
-    if (card.stunReason === 'summon') {
-        stunnedClass = 'stunned-summon';
-    }
-
-    /*
-     * Criatura acabou de atacar neste turno.
-     *
-     * ATORDOADO em laranja.
-     */
-    else if (
-        card.stunReason === 'attack' &&
-        card.lastAttackTurn === state.turn
-    ) {
-        stunnedClass = 'stunned-after-attack';
-    }
-
-    /*
-     * Criatura atacou no turno anterior e será
-     * desatordoada no próximo ciclo.
-     *
-     * ATORDOADO em amarelo.
-     */
-    else if (
-        card.stunReason === 'attack' &&
-        card.stunPhase === 'yellow'
-    ) {
-        stunnedClass = 'stunned-last-turn';
-    }
-
-    /*
-     * Outros efeitos de atordoamento.
-     *
-     * ATORDOADO em roxo.
-     */
-
-    return `
-        <div class="stunned-label ${stunnedClass}">
-            ATORDOADO
-        </div>
-    `;
-})();
-
-const cardStateClass =
-    isStunned
-        ? ' stunned'
-        : '';
-
-const gyStatusHTML =
-    zone === 'gy-view'
-        ? `
-            <div class="gy-status">
-                ${card.isDestroyed ? 'Destruída' : 'Intacta'}
-            </div>
-        `
-        : '';
-
-return `
-    <div
-        class="card${cardStateClass}"
-        ${cardId}
-        ${clickEvent}
-        style="${zone === 'gy-view' ? 'cursor:default;' : ''}"
-    >
-
-        ${getFullCardContent(card)}
-
-        ${stunnedHTML}
-
-        ${gyStatusHTML}
-
-    </div>
-`;
-
-
 }
