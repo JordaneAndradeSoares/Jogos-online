@@ -69,14 +69,12 @@ function revealFaceDownCard(index, owner = 'p1') {
     card._activeTickedTurn = null;
     card._activeTarget = null;
     card._activeTargetOwner = null;
-    card.isStunned = false;
-    card.stunReason = null;
     card.isResting = false;
 
     if (estaDefendendo) {
         /*
          * A carta foi revelada durante a defesa.
-         * Ela pode bloquear imediatamente.
+         * Ela pode bloquear imediatamente se não estiver atordoada.
          */
         card.summonedTurn = state.turn;
         card.casusBelli = 0;

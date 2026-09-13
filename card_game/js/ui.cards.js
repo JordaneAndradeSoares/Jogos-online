@@ -194,7 +194,7 @@ const cardId =
         : '';
 
 const clickEvent =
-    zone === 'gy-view'
+    zone === 'gy-view' || zone === 'effect-target'
         ? ''
         : `onclick="handleCardClick('${owner}', '${zone}', ${index})"`;
 
@@ -206,7 +206,7 @@ const clickEvent =
  * - Não é considerada atordoada somente por estar oculta.
  * - A carta do jogador mostra o visual verdadeiro ao passar o mouse.
  */
-if (card.isFaceDown && zone === 'field') {
+if (card.isFaceDown && (zone === 'field' || zone === 'effect-target')) {
     const isOwnCard = owner === 'p1';
 
     const hiddenContent = `

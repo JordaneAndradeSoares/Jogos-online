@@ -16,7 +16,7 @@ const CARD_DATABASE = [
     { name: "Criatura 14", type: "criatura", cost: 2, generation: 3, atk: 1, def: 4, desc: "[Destruído] Causa 1 dano direto ao jogador inimigo", gatilho: "destruido", art: "imagens/14.png", force: "Força Forte" },
     { name: "Criatura 15", type: "criatura", cost: 3, generation: 1, atk: 2, def: 5, desc: "", art: "imagens/15.png", force: "Força Fraca" },
     { name: "Criatura 16", type: "criatura", cost: 3, generation: 2, atk: 3, def: 6, desc: "[Ativo] Recebe +1 ATK", gatilho: "ativo", art: "imagens/16.png", force: "Eletromagnetismo" },
-    { name: "Criatura 17", type: "criatura", cost: 3, generation: 3, atk: 4, def: 7, desc: "[Destruído] Recebe +2 DEF", gatilho: "destruido", art: "imagens/17.png", force: "Gravidade" },
+    { name: "Criatura 17", type: "criatura", cost: 3, generation: 3, atk: 4, def: 7, desc: "", art: "imagens/17.png", force: "Gravidade" },
     { name: "Criatura 18", type: "criatura", cost: 3, generation: 1, atk: 5, def: 2, desc: "[Campo] Causa 1 dano direto ao jogador inimigo", gatilho: "campo", art: "imagens/18.png", force: "Força Forte" },
     { name: "Criatura 19", type: "criatura", cost: 0, generation: 2, atk: 6, def: 3, desc: "[Ativo] Restaura 1 de vida do seu jogador", gatilho: "ativo", art: "imagens/19.png", force: "Força Fraca" },
     { name: "Criatura 20", type: "criatura", cost: 2, generation: 3, atk: 7, def: 4, desc: "", art: "imagens/20.png", force: "Eletromagnetismo" },

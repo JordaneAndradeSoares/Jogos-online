@@ -50,65 +50,157 @@ const effectFn = state.effectStack.pop();
 }
 
 function triggerEffect(triggerType, card, context = {}) {
-    if (!card || !card.effects || typeof card.effects[triggerType] !== 'function') {
+    if (
+        !card ||
+        !card.effects ||
+        typeof card.effects[triggerType] !== 'function'
+    ) {
         return false;
     }
 
-    const owner = context.owner || (
-        state.players.p1.field.includes(card) ? 'p1' : 'p2'
-    );
+    const owner =
+        context.owner ||
+        (
+            state.players.p1.field.includes(card)
+                ? 'p1'
+                : 'p2'
+        );
 
-    if (
+    /*
+     * Verifica se este efeito precisa de alvo.
+     */
+    const precisaDeAlvo =
         typeof efeitoPrecisaDeAlvo === 'function' &&
-        efeitoPrecisaDeAlvo(card) &&
+        efeitoPrecisaDeAlvo(card);
+
+    /*
+     * Se precisa de alvo e ainda não temos um,
+     * precisamos abrir a seleção.
+     */
+    if (
+        precisaDeAlvo &&
         !context.targetCard
     ) {
-        const alvoAtivoAindaNoCampo =
+
+        /*
+         * Para efeitos [Ativo], reutilizamos o alvo
+         * anteriormente escolhido enquanto ele ainda
+         * estiver no campo.
+         */
+        const alvoAnteriorValido =
             triggerType === 'ativo' &&
             card._activeTarget &&
-            state.players[card._activeTargetOwner]?.field?.includes(card._activeTarget);
+            state.players[
+                card._activeTargetOwner
+            ]?.field?.includes(
+                card._activeTarget
+            );
 
-        if (alvoAtivoAindaNoCampo) {
-            context.targetCard = card._activeTarget;
-            context.targetOwner = card._activeTargetOwner;
-        } else {
+        if (alvoAnteriorValido) {
+
+            context.targetCard =
+                card._activeTarget;
+
+            context.targetOwner =
+                card._activeTargetOwner;
+        }
+
+        else {
+
             if (triggerType === 'ativo') {
                 card._activeTarget = null;
                 card._activeTargetOwner = null;
             }
 
-            const alvos = obterAlvosValidosDoEfeito(card, owner);
+            const alvos =
+                obterAlvosValidosDoEfeito(
+                    card,
+                    owner
+                );
 
             if (!alvos.length) {
-                showToast?.(`${card.name}: não há alvo válido para este efeito.`, 'warning');
+                showToast?.(
+                    `${card.name}: não há alvo válido para este efeito.`,
+                    'warning'
+                );
+
                 return false;
             }
 
-            if (owner === 'p1' && typeof abrirSelecaoDeAlvoDoEfeito === 'function') {
-                abrirSelecaoDeAlvoDoEfeito(card, triggerType, owner, context);
-                return 'pending';
+            /*
+             * Jogador humano:
+             * abre a tela para escolher.
+             */
+            if (
+                owner === 'p1' &&
+                typeof abrirSelecaoDeAlvoDoEfeito === 'function'
+            ) {
+                const abriu =
+                    abrirSelecaoDeAlvoDoEfeito(
+                        card,
+                        triggerType,
+                        owner,
+                        context
+                    );
+
+                return abriu
+                    ? 'pending'
+                    : false;
             }
 
-            const alvoEscolhido = typeof escolherAlvoDoInimigo === 'function'
-                ? escolherAlvoDoInimigo(alvos, card, triggerType)
-                : alvos[0];
 
-            if (!alvoEscolhido) return false;
-            context.targetCard = alvoEscolhido.carta;
-            context.targetOwner = alvoEscolhido.owner;
+            /*
+             * IA:
+             * escolhe automaticamente.
+             */
+            const alvoEscolhido =
+                typeof escolherAlvoDoInimigo === 'function'
+                    ? escolherAlvoDoInimigo(
+                        alvos,
+                        card,
+                        triggerType
+                    )
+                    : alvos[0];
+
+            if (!alvoEscolhido) {
+                return false;
+            }
+
+            context.targetCard =
+                alvoEscolhido.carta;
+
+            context.targetOwner =
+                alvoEscolhido.owner;
 
             if (triggerType === 'ativo') {
-                card._activeTarget = context.targetCard;
-                card._activeTargetOwner = context.targetOwner;
+                card._activeTarget =
+                    context.targetCard;
+
+                card._activeTargetOwner =
+                    context.targetOwner;
             }
         }
     }
 
-    if (triggerType === 'ativo' && context.targetCard) {
-        card._activeTarget = context.targetCard;
-        card._activeTargetOwner = context.targetOwner;
+
+    /*
+     * Guarda o alvo dos efeitos ativos.
+     */
+    if (
+        triggerType === 'ativo' &&
+        context.targetCard
+    ) {
+        card._activeTarget =
+            context.targetCard;
+
+        card._activeTargetOwner =
+            context.targetOwner;
     }
 
+
+    /*
+     * Monta o contexto definitivo.
+     */
     const efeitoContexto = {
         ...context,
         owner,
@@ -116,13 +208,45 @@ function triggerEffect(triggerType, card, context = {}) {
         trigger: triggerType
     };
 
-    pushEffect(() => card.effects[triggerType](efeitoContexto));
-    resolveEffectStack();
 
-    if (typeof renderUI === 'function') renderUI();
-    return true;
+    let resultado = false;
+
+    /*
+     * Executa o efeito diretamente.
+     *
+     * Não precisamos esconder o resultado
+     * da função CardEffects.
+     */
+    try {
+        resultado =
+            card.effects[triggerType](
+                efeitoContexto
+            );
+    }
+
+    catch (erro) {
+        console.error(
+            `Erro ao executar efeito de ${card.name}:`,
+            erro
+        );
+
+        showToast?.(
+            `Erro ao executar o efeito de ${card.name}.`,
+            'error'
+        );
+
+        return false;
+    }
+
+
+    if (
+        typeof renderUI === 'function'
+    ) {
+        renderUI();
+    }
+
+    return resultado !== false;
 }
-
 
 function descartarUmaCartaAleatoriaPorTempo(playerKey) {
     const jogador = state.players[playerKey];
