@@ -15,28 +15,24 @@ function confirmAttack() {
 
     closeAttackModal();
 
-    if (
-        attackerCard.type !== 'criatura' ||
-        attackerCard.isFaceDown ||
-        attackerCard.isStunned ||
-        attackerCard.attackedThisTurn ||
-        attackerCard.lastAttackTurn === state.turn - 1 ||
-        attackerCard.casusBelli === 0 ||
-        attackerCard.isResting
-    ) {
+    if (!cartaPodeAtacar(attackerCard)) {
         showToast("Esta criatura não pode atacar agora.", "warning");
         return;
     }
 
-    attackerCard.attackedThisTurn = true;
-    attackerCard.attackedLastTurn = false;
-    // Após atacar, a criatura fica atordoada durante o próximo turno inteiro.
-    attackerCard.isStunned = true;
-    attackerCard.stunReason = 'attack';
-    attackerCard.lastAttackTurn = state.turn;
-    attackerCard.casusBelli = 0;
+    marcarAtaqueDaCarta(attackerCard);
 
-    let blockerIndex = typeof enemyDecidesBlock === 'function' ? enemyDecidesBlock(attackerCard) : null;
+    state.activeAttack = {
+        attackerOwner: 'p1',
+        attackerCard: attackerCard,
+        attackerIndex: selectedCardToAttackIndex
+    };
+
+    let blockerIndex =
+        typeof enemyDecidesBlock === 'function'
+            ? enemyDecidesBlock(attackerCard)
+            : null;
+
     let p2 = state.players.p2;
 
     if (blockerIndex !== null && blockerIndex >= 0 && blockerIndex < p2.field.length) {
@@ -86,6 +82,7 @@ function confirmAttack() {
         }, 1000);
     }
 
+    state.activeAttack = null;
     registerActionDone('p1');
 }
 

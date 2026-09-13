@@ -476,8 +476,10 @@ box-shadow: 0 0 9px #39d353;
 
 /* ATORDOAMENTO */
 .card.stunned {
-border: 4px solid black !important;
-box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important;
+border: 4px solid #ff8c00 !important;
+box-shadow:
+    0 0 8px rgba(255, 140, 0, 0.9),
+    0 0 18px rgba(255, 140, 0, 0.55) !important;
 filter: none;
 }
 

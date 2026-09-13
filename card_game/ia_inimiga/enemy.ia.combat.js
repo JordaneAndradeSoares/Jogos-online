@@ -1,6 +1,6 @@
 function obterAtacantesDisponiveisDoInimigo() {
     return state.players.p2.field.filter(carta => {
-        return cartaInimigaPodeAtacar(carta);
+        return cartaPodeAtacar(carta);
     });
 }
 
@@ -29,14 +29,13 @@ function escolherMelhorAtacanteDoInimigo() {
 function iniciarAtaqueDoInimigo(cartaAtacante) {
     const jogadorInimigo = state.players.p2;
 
-    if (!cartaInimigaPodeAtacar(cartaAtacante)) {
+    if (!cartaPodeAtacar(cartaAtacante)) {
         return false;
     }
 
-    cartaAtacante.attackedThisTurn = true;
-    cartaAtacante.attackedLastTurn = false;
-    cartaAtacante.lastAttackTurn = state.turn;
-    cartaAtacante.casusBelli = 0;
+    if (!marcarAtaqueDaCarta(cartaAtacante)) {
+        return false;
+    }
 
     state.activeAttack = {
         attackerOwner: 'p2',
@@ -61,28 +60,8 @@ function iniciarAtaqueDoInimigo(cartaAtacante) {
 function enemyDecidesBlock(attackerCard) {
     const jogadorInimigo = state.players.p2;
 
-    // Criaturas prontas, cartas ocultas e terrenos podem bloquear.
     const bloqueadores = jogadorInimigo.field.filter(carta => {
-        if (!carta) return false;
-
-        const tipoPodeBloquear =
-            carta.type === 'criatura' ||
-            carta.type === 'terreno' ||
-            carta.isFaceDown;
-
-        if (!tipoPodeBloquear) return false;
-
-        // Uma criatura atordoada continua podendo defender.
-        // O estado de atordoamento impede atacar, mas não impede bloquear.
-        if (
-            !carta.isFaceDown &&
-            carta.type === 'criatura' &&
-            carta.isResting
-        ) {
-            return false;
-        }
-
-        return obterDefesaDaCartaInimiga(carta) > 0;
+        return cartaPodeBloquear(carta);
     });
 
     if (!bloqueadores.length) {
@@ -95,15 +74,20 @@ function enemyDecidesBlock(attackerCard) {
     const informacoesDosBloqueadores = bloqueadores.map(carta => {
         return {
             carta,
-            ataque: carta.type === 'terreno'
+            ataque: carta.isFaceDown
                 ? 0
-                : obterAtaqueDaCartaInimiga(carta),
-            defesa: obterDefesaDaCartaInimiga(carta),
+                : (
+                    carta.type === 'terreno'
+                        ? 0
+                        : obterAtaqueDaCartaInimiga(carta)
+                ),
+            defesa: carta.isFaceDown
+                ? 1
+                : obterDefesaDaCartaInimiga(carta),
             oculta: !!carta.isFaceDown
         };
     });
 
-    // Primeiro procura uma troca em que o bloqueador mata e sobrevive.
     let escolha = informacoesDosBloqueadores
         .filter(informacao => {
             return (
@@ -119,10 +103,9 @@ function enemyDecidesBlock(attackerCard) {
         })[0];
 
     if (escolha) {
-        return jogadorInimigo.field.indexOf(escolha.carta);
+        return prepararBloqueioDoInimigo(escolha.carta);
     }
 
-    // Depois procura uma troca favorável mesmo que o bloqueador também morra.
     escolha = informacoesDosBloqueadores
         .filter(informacao => {
             return informacao.ataque >= defesaDoAtacante;
@@ -135,10 +118,9 @@ function enemyDecidesBlock(attackerCard) {
         })[0];
 
     if (escolha) {
-        return jogadorInimigo.field.indexOf(escolha.carta);
+        return prepararBloqueioDoInimigo(escolha.carta);
     }
 
-    // Se tiver muita vida, evita sacrificar uma criatura contra um ataque pequeno.
     if (jogadorInimigo.life > 8 && ataqueDoAtacante <= 2) {
         const bloqueadoresSeguros = informacoesDosBloqueadores.filter(informacao => {
             return (
@@ -155,10 +137,9 @@ function enemyDecidesBlock(attackerCard) {
             return primeiro.defesa - segundo.defesa;
         })[0];
 
-        return jogadorInimigo.field.indexOf(escolha.carta);
+        return prepararBloqueioDoInimigo(escolha.carta);
     }
 
-    // Por último usa o bloqueador de menor valor para absorver o dano.
     escolha = informacoesDosBloqueadores.sort((primeiro, segundo) => {
         const valorPrimeiro =
             primeiro.ataque * 2 +
@@ -174,6 +155,33 @@ function enemyDecidesBlock(attackerCard) {
     })[0];
 
     return escolha
-        ? jogadorInimigo.field.indexOf(escolha.carta)
+        ? prepararBloqueioDoInimigo(escolha.carta)
         : null;
+}
+
+function prepararBloqueioDoInimigo(cartaBloqueadora) {
+    const jogadorInimigo = state.players.p2;
+    const indice = jogadorInimigo.field.indexOf(cartaBloqueadora);
+
+    if (indice < 0) return null;
+
+    // A IA pode revelar sua própria carta oculta durante a defesa,
+    // mas somente se puder pagar o custo original.
+    if (
+        cartaBloqueadora.isFaceDown &&
+        jogadorInimigo.energy >= obterCustoOriginalDaCarta(cartaBloqueadora)
+    ) {
+        const ataqueDoAtacante =
+            Number(state.activeAttack?.attackerCard?.atk) || 0;
+
+        const defesaOriginal =
+            Number(cartaBloqueadora._faceDownOriginalDef) || 0;
+
+        // Revela quando isso permite uma troca melhor que o 0/1 oculto.
+        if (defesaOriginal > ataqueDoAtacante || ataqueDoAtacante <= 1) {
+            revealFaceDownCard(indice, 'p2');
+        }
+    }
+
+    return indice;
 }

@@ -68,7 +68,7 @@ function renderUI() {
             attackingCardEl.insertAdjacentHTML('beforeend', '<div class="combat-label combat-attacker-label">ATACANDO</div>');
         }
         state.players.p1.field.forEach((card, index) => {
-            const canBlock = card && (card.isFaceDown || card.type === 'terreno' || (card.type === 'criatura' && !card.isResting && card.casusBelli > 0));
+            const canBlock = cartaPodeBloquear(card);
             if (canBlock) {
                 const el = document.getElementById(`p1-field-card-${index}`);
                 if (el) el.classList.add('possible-blocker');
@@ -129,14 +129,28 @@ Resumo RÁPIDO das regras:
 4. Se ficar acima de 8 cartas, descarte obrigatoriamente até 8 antes de realizar outras ações.
 5. Use energia para jogar cartas.
 6. Apenas criaturas podem atacar.
-7. Criaturas atordoadas não podem atacar nem bloquear. Criaturas ficam atordoados se atacam (até o turno depois do proximo) e quando entram em campo com a face para cima (até o proximo turno)
+7. Criaturas atordoadas não podem atacar nem bloquear. Uma criatura que ataca fica atordoada durante o turno seguinte; uma criatura que entra virada para cima fica atordoada até o próximo ciclo.
 8. Criaturas e terrenos podem bloquear quando estiverem aptos.
 9. Criaturas e terrenos podem ser jogados para baixo. Cartas viradas para baixo custam 0, possuem —/1 e podem bloquear; ao bloquear, são reveladas se você quiser e pagar seu custo.
 10. Cartas que possuem ATK nulo (—), não atacam e não causam dano de combate.
-11. A DEF atual das cartas é restaurada ao valor original no fim do ciclo de turno. Buffs permanecem na carta.
+11. A DEF atual das cartas é restaurada ao valor original no início de cada novo ciclo de turno. Bônus e reduções permanentes de atributos permanecem na carta. Buffs permanecem na carta.
 12. ATK/DEF aumentados aparecem em verde; ATK/DEF reduzidos aparecem em vermelho.
 13. Reduza a vida inimiga a 0 para vencer.
 14. Se precisar comprar uma carta com o deck vazio, você perde.
 `;
-function openTutorial(){const m=document.getElementById('tutorial-modal'),c=document.getElementById('tutorial-content');if(!m||!c)return;m.style.display='flex';c.textContent=RULES_TEXT;}
+function openTutorial(){
+    const modal = document.getElementById('tutorial-modal');
+    const conteudo = document.getElementById('tutorial-content');
+    const temporizador = document.getElementById('tutorial-action-timer');
+
+    if (!modal || !conteudo) return;
+
+    modal.style.display = 'flex';
+    conteudo.textContent = RULES_TEXT;
+
+    if (temporizador) {
+        temporizador.textContent =
+            `${Math.max(0, state.tempoRestanteAcao ?? 60)}s`;
+    }
+}
 function closeTutorial(){const m=document.getElementById('tutorial-modal');if(m)m.style.display='none';}

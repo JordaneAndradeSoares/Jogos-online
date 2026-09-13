@@ -12,22 +12,19 @@ function revealFaceDownCard(index, owner = 'p1') {
     }
 
     const estaDefendendo =
-        owner === 'p1' &&
         state.activeAttack &&
-        state.activeAttack.attackerOwner === 'p2';
+        state.activeAttack.attackerOwner !== owner;
 
-    if (owner === 'p1') {
-        const podeRevelarNormalmente =
-            state.initiativeOwner === 'p1' &&
-            !state.activeAttack;
+    const podeRevelarNormalmente =
+        state.initiativeOwner === owner &&
+        !state.activeAttack;
 
-        if (!estaDefendendo && !podeRevelarNormalmente) {
-            showToast(
-                'Essa carta só pode ser revelada durante sua ação ou durante a defesa de um ataque inimigo.',
-                'warning'
-            );
-            return false;
-        }
+    if (!estaDefendendo && !podeRevelarNormalmente) {
+        showToast(
+            'Essa carta só pode ser revelada durante sua ação ou durante a defesa de um ataque.',
+            'warning'
+        );
+        return false;
     }
 
     const custoRevelar = Number(
@@ -225,6 +222,11 @@ function resolveFaceDownBlock(
         if (!revealFaceDownCard(index, 'p1')) {
             return;
         }
+    }
+
+    if (!cartaPodeBloquear(card)) {
+        showToast('Esta carta não pode bloquear.', 'warning');
+        return;
     }
 
     const attackerCard =

@@ -14,16 +14,7 @@ function obterCustoDaCartaInimiga(carta) {
 }
 
 function cartaInimigaPodeAtacar(carta) {
-    if (!carta) return false;
-    if (carta.type !== 'criatura') return false;
-    if (carta.isFaceDown) return false;
-    if (carta.isStunned) return false;
-    if (carta.isResting) return false;
-    if (carta.attackedThisTurn) return false;
-    if (Number(carta.casusBelli) <= 0) return false;
-    if (carta.lastAttackTurn === state.turn - 1) return false;
-
-    return true;
+    return cartaPodeAtacar(carta);
 }
 
 function obterValorDaCriaturaInimiga(carta) {
