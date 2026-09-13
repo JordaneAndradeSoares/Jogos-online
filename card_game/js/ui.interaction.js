@@ -172,11 +172,17 @@ function handleCardClick(owner, zone, index) {
         }
 
         showToast(
-            `${carta.name} foi revelada e pode atacar neste turno.`,
+            `${carta.name} foi revelada e está pronta para atacar ou bloquear!`,
             "success"
         );
 
-        registerActionDone('p1');
+        /*
+        * NÃO registramos registerActionDone aqui.
+        *
+        * A revelação deixa a carta imediatamente pronta
+        * e o jogador continua com a iniciativa para poder
+        * atacar com ela no mesmo momento.
+        */
         return;
     }
 

@@ -91,22 +91,24 @@ function revealFaceDownCard(index, owner = 'p1') {
     card._activeTargetOwner = null;
     card.isResting = false;
 
-    if (estaDefendendo) {
-        /*
-         * A carta foi revelada durante a defesa.
-         * Ela pode bloquear imediatamente se não estiver atordoada.
-         */
-        card.summonedTurn = state.turn;
-        card.casusBelli = 0;
-        card.attackedThisTurn = false;
-    } else {
-        /*
-         * A carta já estava em campo antes da revelação.
-         */
-        card.summonedTurn = state.turn - 1;
-        card.casusBelli = 1;
-        card.attackedThisTurn = false;
-    }
+    /*
+    * CARTA REVELADA
+    *
+    * Ao virar para cima, a carta fica imediatamente pronta.
+    *
+    * Portanto:
+    * - pode atacar imediatamente;
+    * - pode bloquear imediatamente;
+    * - não fica atordoada;
+    * - recebe casusBelli = 1.
+    */
+    card.summonedTurn = state.turn - 1;
+    card.isStunned = false;
+    card.stunReason = null;
+    card.stunPhase = null;
+    card.casusBelli = 1;
+    card.attackedThisTurn = false;
+    card.attackedLastTurn = false;
 
     if (typeof gainEnergyFromCard === 'function') {
         gainEnergyFromCard(player, card);
