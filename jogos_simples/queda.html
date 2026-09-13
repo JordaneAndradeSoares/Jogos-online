@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Queda - Jogar</title>
+    <style>
+        body { margin: 0; background-color: #222; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; touch-action: none; font-family: sans-serif; }
+        canvas { background-color: black; border: 2px solid white; max-width: 95vw; }
+        .controles { display: flex; gap: 10px; margin-top: 15px; width: 300px; }
+        button { flex: 1; padding: 20px; font-size: 16px; border-radius: 10px; border: none; background: #444; color: white; user-select: none; }
+        #btnAcao { background: #28a745; font-weight: bold; } /* Botão verde de Jogar */
+    </style>
+</head>
+<body>
+
+    <canvas id="jogo" width="300" height="400"></canvas>
+    <div class="controles">
+        <button id="btnEsq" style="display:none">ESQUERDA</button>
+        <button id="btnAcao">JOGAR</button>
+        <button id="btnDir" style="display:none">DIREITA</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('jogo');
+        const ctx = canvas.getContext('2d');
+        const btnEsq = document.getElementById('btnEsq');
+        const btnDir = document.getElementById('btnDir');
+        const btnAcao = document.getElementById('btnAcao');
+
+        const LARGURA = 300, ALTURA = 400;
+        let x_jogador = LARGURA / 2, y_jogador = ALTURA / 2;
+        let tamanho = 10, largura_obstaculo = LARGURA - (tamanho * 4);
+        let y_parede = ALTURA + tamanho, x_parede = Math.random() * (LARGURA - largura_obstaculo);
+        
+        let jogo_ativo = false, derrota = false;
+        let teclas = { a: false, d: false };
+
+        // Controle dos botões
+        function atualizarInterface() {
+            if (jogo_ativo) {
+                btnEsq.style.display = "block";
+                btnDir.style.display = "block";
+                btnAcao.style.display = "none";
+            } else {
+                btnEsq.style.display = "none";
+                btnDir.style.display = "none";
+                btnAcao.style.display = "block";
+                btnAcao.innerText = derrota ? "REINICIAR" : "JOGAR";
+            }
+        }
+
+        btnAcao.onclick = () => {
+            jogo_ativo = true;
+            derrota = false;
+            x_jogador = LARGURA / 2;
+            y_jogador = ALTURA / 2;
+            atualizarInterface();
+        };
+
+        // Eventos de movimento
+        const mover = (tecla, estado) => teclas[tecla] = estado;
+        btnEsq.onmousedown = btnEsq.ontouchstart = () => mover('a', true);
+        btnEsq.onmouseup = btnEsq.onmouseleave = btnEsq.ontouchend = () => mover('a', false);
+        btnDir.onmousedown = btnDir.ontouchstart = () => mover('d', true);
+        btnDir.onmouseup = btnDir.onmouseleave = btnDir.ontouchend = () => mover('d', false);
+
+        function loop() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, LARGURA, ALTURA);
+
+            if (jogo_ativo) {
+                if (teclas.a && x_jogador > 0) x_jogador -= 5;
+                if (teclas.d && x_jogador < LARGURA - tamanho) x_jogador += 5;
+
+                y_parede -= 2;
+                y_jogador += 2;
+
+                if (y_parede < -tamanho) { x_parede = Math.random() * (LARGURA - largura_obstaculo); y_parede = ALTURA + tamanho; }
+                if (y_jogador > ALTURA + tamanho) y_jogador = -tamanho;
+
+                if (x_jogador < x_parede + largura_obstaculo && x_jogador + tamanho > x_parede &&
+                    y_jogador < y_parede + tamanho && y_jogador + tamanho > y_parede) {
+                    y_jogador = y_parede - tamanho;
+                    if (y_jogador <= -tamanho) { 
+                        derrota = true; 
+                        jogo_ativo = false; 
+                        atualizarInterface();
+                    }
+                }
+                ctx.fillStyle = 'red';
+                ctx.fillRect(x_jogador, y_jogador, tamanho, tamanho);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(x_parede, y_parede, largura_obstaculo, tamanho);
+            } else {
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.fillText(derrota ? "DERROTA!" : "PRONTO?", LARGURA/2, ALTURA/2);
+            }
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
+</body>
+</html>

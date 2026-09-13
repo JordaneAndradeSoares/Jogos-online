@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portas Lógicas</title>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f0f0f0; font-family: Arial, sans-serif; }
+        canvas { border: 2px solid #333; background-color: white; max-width: 100%; touch-action: none; }
+        .controles { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+        button { padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <canvas id="jogo" width="800" height="400"></canvas>
+    <div class="controles" id="botoes-portas"></div>
+
+    <script>
+        const canvas = document.getElementById('jogo');
+        const ctx = canvas.getContext('2d');
+        
+        let A = false, B = false, inv_A = false, inv_B = false;
+        let modo = "AND";
+        const modos = ["AND", "NAND", "OR", "NOR", "XOR", "NXOR"];
+
+        // Criar botões de seleção na tela
+        const divBotoes = document.getElementById('botoes-portas');
+        modos.forEach(m => {
+            let btn = document.createElement('button');
+            btn.innerText = m;
+            btn.onclick = () => modo = m;
+            divBotoes.appendChild(btn);
+        });
+
+        const botao_verde = {x: 150, y: 300, w: 50, h: 50};
+        const botao_azul = {x: 600, y: 300, w: 50, h: 50};
+        const botao_saida = {x: 375, y: 100, w: 50, h: 50};
+        const botao_inv_A = {x: 220, y: 300, w: 30, h: 30};
+        const botao_inv_B = {x: 670, y: 300, w: 30, h: 30};
+
+        function calcular_saida() {
+            let valA = inv_A ? !A : A;
+            let valB = inv_B ? !B : B;
+            if (modo === "AND") return valA && valB;
+            if (modo === "NAND") return !(valA && valB);
+            if (modo === "OR") return valA || valB;
+            if (modo === "NOR") return !(valA || valB);
+            if (modo === "XOR") return valA ^ valB;
+            if (modo === "NXOR") return !(valA ^ valB);
+            return false;
+        }
+
+        function desenhar() {
+            ctx.clearRect(0, 0, 800, 400);
+
+            // Desenhar botões
+            ctx.fillStyle = calcular_saida() ? "red" : "gray";
+            ctx.fillRect(botao_saida.x, botao_saida.y, botao_saida.w, botao_saida.h);
+
+            ctx.fillStyle = "green";
+            ctx.fillRect(botao_verde.x, botao_verde.y, botao_verde.w, botao_verde.h);
+            if(A) { ctx.strokeStyle = "black"; ctx.lineWidth = 3; ctx.strokeRect(botao_verde.x, botao_verde.y, botao_verde.w, botao_verde.h); }
+
+            ctx.fillStyle = "blue";
+            ctx.fillRect(botao_azul.x, botao_azul.y, botao_azul.w, botao_azul.h);
+            if(B) { ctx.strokeStyle = "black"; ctx.lineWidth = 3; ctx.strokeRect(botao_azul.x, botao_azul.y, botao_azul.w, botao_azul.h); }
+
+            ctx.fillStyle = "gray";
+            ctx.fillRect(botao_inv_A.x, botao_inv_A.y, botao_inv_A.w, botao_inv_A.h);
+            if(inv_A) ctx.strokeRect(botao_inv_A.x, botao_inv_A.y, botao_inv_A.w, botao_inv_A.h);
+
+            ctx.fillRect(botao_inv_B.x, botao_inv_B.y, botao_inv_B.w, botao_inv_B.h);
+            if(inv_B) ctx.strokeRect(botao_inv_B.x, botao_inv_B.y, botao_inv_B.w, botao_inv_B.h);
+
+            // Textos
+            ctx.fillStyle = "black";
+            ctx.font = "20px Arial";
+            ctx.fillText("Porta: " + modo, 350, 80);
+            ctx.fillText("Inv A", 210, 290);
+            ctx.fillText("Inv B", 660, 290);
+            
+            requestAnimationFrame(desenhar);
+        }
+
+        function clique(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+            const dentro = (b, px, py) => px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h;
+
+            if (dentro(botao_verde, x, y)) A = !A;
+            if (dentro(botao_azul, x, y)) B = !B;
+            if (dentro(botao_inv_A, x, y)) inv_A = !inv_A;
+            if (dentro(botao_inv_B, x, y)) inv_B = !inv_B;
+        }
+
+        canvas.addEventListener('mousedown', clique);
+        canvas.addEventListener('touchstart', clique);
+        desenhar();
+    </script>
+</body>
+</html>

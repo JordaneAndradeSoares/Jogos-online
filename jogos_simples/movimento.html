@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Sensor de Movimento HTML</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+        #caixa { width: 100px; height: 100px; background: red; margin: 0 auto; transition: transform 0.1s; }
+    </style>
+</head>
+<body>
+
+    <h1>Incline seu dispositivo</h1>
+    <h1>(Pode não funcionar em todos os dispositivos)</h1>
+    <div id="caixa"></div>
+
+    <script>
+        // Acompanha o movimento de inclinação do dispositivo
+        window.addEventListener('deviceorientation', (event) => {
+            const beta = event.beta;   // Inclinação para frente/trás (-180 a 180)
+            const gamma = event.gamma; // Inclinação para os lados (-90 a 90)
+
+            const caixa = document.getElementById('caixa');
+            
+            // Move a caixa na tela baseado no movimento físico
+            caixa.style.transform = `translate(${gamma}px, ${beta}px)`;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Transformação de Pixels</title>
+    <style>
+        /* CSS focado em Mobile + Desktop */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .controls {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        label { font-size: 13px; color: #aaa; display: flex; flex-direction: column; gap: 5px; }
+
+        input, button {
+            background: #2d2d2d;
+            border: 1px solid #444;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 16px; /* Evita zoom automático no iOS ao focar */
+        }
+
+        button {
+            background-color: #007bff;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:active { transform: scale(0.98); }
+        button:disabled { background-color: #444; opacity: 0.6; }
+
+        #canvasContainer {
+            margin-top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        canvas {
+            max-width: 100%; /* Ajuste crucial para celular */
+            height: auto !important;
+            border: 2px solid #333;
+            image-rendering: pixelated;
+            border-radius: 4px;
+        }
+
+        #downloadLink {
+            margin-top: 15px;
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <label>Imagem Alvo (Visual final):
+            <input type="file" id="origemInput" accept="image/*">
+        </label>
+        <label>Imagem Fonte (Pixels utilizados):
+            <input type="file" id="alvoInput" accept="image/*">
+        </label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <label>Resolução (64-128):
+                <input type="number" id="tamanhoInput" value="64" min="16" max="256">
+            </label>
+            <label>Zoom Visual:
+                <input type="number" id="zoomInput" value="4" min="1">
+            </label>
+        </div>
+        <button id="iniciarBtn">Começar Transformação</button>
+        <a id="downloadLink">⬇ Baixar Resultado</a>
+    </div>
+
+    <div id="canvasContainer">
+        <canvas id="screenCanvas"></canvas>
+    </div>
+
+<script>
+    async function carregarEPreparar(file, tamanho) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = tamanho;
+                    canvas.height = tamanho;
+                    const ctx = canvas.getContext('2d');
+                    const m = Math.min(img.width, img.height);
+                    const x = (img.width - m) / 2;
+                    const y = (img.height - m) / 2;
+                    ctx.drawImage(img, x, y, m, m, 0, 0, tamanho, tamanho);
+                    resolve(ctx.getImageData(0, 0, tamanho, tamanho));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    const workerCode = `
+        self.onmessage = function(e) {
+            const { origemData, alvoData, tamanho } = e.data;
+            const numPixels = tamanho * tamanho;
+            const usados = new Uint8Array(numPixels);
+            let chunk = [];
+
+            for (let i = 0; i < numPixels; i++) {
+                const r1 = origemData[i*4], g1 = origemData[i*4+1], b1 = origemData[i*4+2];
+                let minDist = Infinity, bestJ = -1;
+
+                for (let j = 0; j < numPixels; j++) {
+                    if (usados[j]) continue;
+                    const r2 = alvoData[j*4], g2 = alvoData[j*4+1], b2 = alvoData[j*4+2];
+                    const dist = (r1-r2)**2 + (g1-g2)**2 + (b1-b2)**2;
+                    if (dist < minDist) { minDist = dist; bestJ = j; }
+                }
+                usados[bestJ] = 1;
+                chunk.push(i, bestJ);
+                if (chunk.length >= 200) { self.postMessage({ type: 'update', chunk: chunk }); chunk = []; }
+            }
+            self.postMessage({ type: 'done', chunk: chunk });
+        };
+    `;
+
+    document.getElementById('iniciarBtn').addEventListener('click', async () => {
+        const oFile = document.getElementById('origemInput').files[0];
+        const aFile = document.getElementById('alvoInput').files[0];
+        const tam = parseInt(document.getElementById('tamanhoInput').value);
+        const zm = parseInt(document.getElementById('zoomInput').value);
+
+        if(!oFile || !aFile) return alert("Selecione as fotos!");
+
+        const btn = document.getElementById('iniciarBtn');
+        btn.disabled = true;
+        btn.innerText = "Processando...";
+
+        const oData = await carregarEPreparar(oFile, tam);
+        const aData = await carregarEPreparar(aFile, tam);
+
+        const canvas = document.getElementById('screenCanvas');
+        canvas.width = tam * zm;
+        canvas.height = tam * zm;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        const pCanvas = document.createElement('canvas');
+        pCanvas.width = tam; pCanvas.height = tam;
+        const pCtx = pCanvas.getContext('2d');
+        const pData = pCtx.createImageData(tam, tam);
+        for(let i=3; i<pData.data.length; i+=4) pData.data[i] = 255;
+
+        const blob = new Blob([workerCode], {type: 'text/javascript'});
+        const worker = new Worker(URL.createObjectURL(blob));
+        worker.postMessage({origemData: oData.data, alvoData: aData.data, tamanho: tam});
+
+        worker.onmessage = (e) => {
+            const { type, chunk } = e.data;
+            for(let k=0; k<chunk.length; k+=2) {
+                const i = chunk[k], j = chunk[k+1];
+                pData.data[i*4] = aData.data[j*4];
+                pData.data[i*4+1] = aData.data[j*4+1];
+                pData.data[i*4+2] = aData.data[j*4+2];
+            }
+            pCtx.putImageData(pData, 0, 0);
+            ctx.drawImage(pCanvas, 0, 0, tam, tam, 0, 0, tam*zm, tam*zm);
+
+            if(type === 'done') {
+                btn.disabled = false;
+                btn.innerText = "Reiniciar Transformação";
+                const link = document.getElementById('downloadLink');
+                link.href = pCanvas.toDataURL();
+                link.download = "resultado.png";
+                link.style.display = "block";
+                worker.terminate();
+            }
+        };
+    });
+</script>
+</body>
+</html>
