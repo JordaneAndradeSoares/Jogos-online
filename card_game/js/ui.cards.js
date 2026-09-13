@@ -1,0 +1,361 @@
+function getForceHTML(force) {
+const forceClasses = {
+'Eletromagnetismo': 'force-electromagnetismo',
+'Gravidade': 'force-gravidade',
+'Força Forte': 'force-forte',
+'Força Fraca': 'force-fraca'
+};
+
+
+const safeForce = force || 'Eletromagnetismo';
+const forceClass =
+    forceClasses[safeForce] ||
+    'force-electromagnetismo';
+
+return `<span class="force-dot ${forceClass}" title="${safeForce}" aria-label="${safeForce}"></span>`;
+
+
+}
+
+function getCardStatsHTML(card) {
+if (card.type === 'efeito') return '';
+
+
+const atkVal = card.isFaceDown
+    ? (card._faceDownOriginalAtk ?? card.atk)
+    : card.atk;
+
+const defVal = card.isFaceDown
+    ? (
+        card._faceDownOriginalCurrentDef ??
+        card._faceDownOriginalDef ??
+        card.currentDef ??
+        card.def ??
+        0
+    )
+    : (
+        card.currentDef ??
+        card.def ??
+        0
+    );
+
+const atkBase =
+    card.baseAtk ??
+    card._faceDownOriginalAtk ??
+    atkVal;
+
+const defBase =
+    card.baseDef ??
+    card._faceDownOriginalDef ??
+    defVal;
+
+const atkClass =
+    atkVal > atkBase
+        ? 'stat-up'
+        : atkVal < atkBase
+            ? 'stat-down'
+            : '';
+
+const defClass =
+    defVal > defBase
+        ? 'stat-up'
+        : defVal < defBase
+            ? 'stat-down'
+            : '';
+
+const attack =
+    atkVal === null ||
+    atkVal === undefined
+        ? '—'
+        : `<span class="${atkClass}">${atkVal}</span>`;
+
+const defense =
+    `<span class="${defClass}">${defVal}</span>`;
+
+return `
+    <div class="card-stats-box">
+        ${attack} / ${defense}
+    </div>
+`;
+
+
+}
+
+function getFullCardContent(card) {
+const displayCost = card.isFaceDown
+? (
+card._faceDownOriginalCost ??
+card.baseCost ??
+card.cost
+)
+: (
+card.custoAtual ??
+card.cost
+);
+
+
+const displayBaseCost =
+    card.custoBase ??
+    card.baseCost ??
+    displayCost;
+
+const costClass =
+    displayCost < displayBaseCost
+        ? 'stat-up'
+        : displayCost > displayBaseCost
+            ? 'stat-down'
+            : '';
+
+return `
+    <div class="card-top-section">
+
+        ${card.name}
+
+        <div class="card-energy-values">
+
+            <div
+                class="card-cost-circle ${costClass}"
+                title="Custo"
+            >
+                ${displayCost}
+            </div>
+
+            ${
+                card.type !== 'efeito'
+                    ? `
+                        <div
+                            class="card-generation-circle"
+                            title="Geração"
+                        >
+                            ${card.generation ?? 0}
+                        </div>
+                    `
+                    : ''
+            }
+
+        </div>
+
+    </div>
+
+    <div class="card-img-box">
+        <img
+            src="${card.art || ''}"
+            alt="${card.name}"
+        >
+    </div>
+
+    <div class="card-bottom-section">
+
+        ${card.desc}
+
+        ${getForceHTML(card.force)}
+
+        ${getCardStatsHTML(card)}
+
+    </div>
+`;
+
+
+}
+
+function buildCardHTML(card, owner, zone, index) {
+if (zone === 'gy') {
+const gyStatusHTML = `             <div
+                class="gy-status"
+                style="font-size: 11px; padding: 4px 8px;"             >
+                ${card.isDestroyed ? 'Destruída' : 'Intacta'}             </div>
+        `;
+
+
+    return `
+        <div
+            class="card"
+            style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                margin: 0;
+            "
+        >
+
+            ${getFullCardContent(card)}
+
+            ${gyStatusHTML}
+
+        </div>
+    `;
+}
+
+const cardId =
+    zone === 'field'
+        ? `id="${owner}-field-card-${index}"`
+        : '';
+
+const clickEvent =
+    zone === 'gy-view'
+        ? ''
+        : `onclick="handleCardClick('${owner}', '${zone}', ${index})"`;
+
+/*
+ * CARTA VIRADA PARA BAIXO
+ *
+ * - Ataque NULO.
+ * - Pode defender.
+ * - Não é considerada atordoada somente por estar oculta.
+ * - A carta do jogador mostra o visual verdadeiro ao passar o mouse.
+ */
+if (card.isFaceDown && zone === 'field') {
+    const isOwnCard = owner === 'p1';
+
+    const hiddenContent = `
+        <div class="card-hidden-content">
+
+            <div class="face-down-title">
+                CARTA OCULTA
+            </div>
+
+            <div class="face-down-symbol">
+                ?
+            </div>
+
+            <div class="face-down-stats">
+                — / 1
+            </div>
+
+            <div class="face-down-hint">
+                ${
+                    isOwnCard
+                        ? 'Passe o mouse para ver'
+                        : 'Carta desconhecida'
+                }
+            </div>
+
+        </div>
+    `;
+
+    const realContent =
+        isOwnCard
+            ? `
+                <div class="card-real-content">
+                    ${getFullCardContent(card)}
+                </div>
+            `
+            : '';
+
+    return `
+        <div
+            class="card face-down ${isOwnCard ? 'own-face-down' : ''}"
+            ${cardId}
+            ${clickEvent}
+        >
+
+            ${hiddenContent}
+
+            ${realContent}
+
+        </div>
+    `;
+}
+
+const isStunned =
+    zone === 'field' &&
+    card.type === 'criatura' &&
+    !card.isFaceDown &&
+    card.isStunned;
+
+const isResting =
+    zone === 'field' &&
+    card.type === 'criatura' &&
+    !isStunned &&
+    (
+        card.isResting ||
+        card.casusBelli === 0
+    );
+
+const stunnedHTML = (() => {
+    if (!isStunned) return '';
+
+    let stunnedClass = 'stunned-effect';
+
+    /*
+     * Criatura acabou de entrar virada para cima.
+     *
+     * ATORDOADO em vermelho.
+     */
+    if (card.stunReason === 'summon') {
+        stunnedClass = 'stunned-summon';
+    }
+
+    /*
+     * Criatura acabou de atacar neste turno.
+     *
+     * ATORDOADO em laranja.
+     */
+    else if (
+        card.stunReason === 'attack' &&
+        card.lastAttackTurn === state.turn
+    ) {
+        stunnedClass = 'stunned-after-attack';
+    }
+
+    /*
+     * Criatura atacou no turno anterior e será
+     * desatordoada no próximo ciclo.
+     *
+     * ATORDOADO em amarelo.
+     */
+    else if (
+        card.stunReason === 'attack' &&
+        card.stunPhase === 'yellow'
+    ) {
+        stunnedClass = 'stunned-last-turn';
+    }
+
+    /*
+     * Outros efeitos de atordoamento.
+     *
+     * ATORDOADO em roxo.
+     */
+
+    return `
+        <div class="stunned-label ${stunnedClass}">
+            ATORDOADO
+        </div>
+    `;
+})();
+
+const cardStateClass =
+    isStunned
+        ? ' stunned'
+        : '';
+
+const gyStatusHTML =
+    zone === 'gy-view'
+        ? `
+            <div class="gy-status">
+                ${card.isDestroyed ? 'Destruída' : 'Intacta'}
+            </div>
+        `
+        : '';
+
+return `
+    <div
+        class="card${cardStateClass}"
+        ${cardId}
+        ${clickEvent}
+        style="${zone === 'gy-view' ? 'cursor:default;' : ''}"
+    >
+
+        ${getFullCardContent(card)}
+
+        ${stunnedHTML}
+
+        ${gyStatusHTML}
+
+    </div>
+`;
+
+
+}

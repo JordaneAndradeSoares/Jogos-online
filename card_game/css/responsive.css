@@ -1,0 +1,228 @@
+.game-container{max-width:1120px}.card{width:104px;height:156px}.face-down-preview{display:none;position:absolute;left:50%;bottom:105%;transform:translateX(-50%);width:210px;padding:10px;background:#07101e;color:#fff;border:1px solid #00e5ff;z-index:100;font-size:11px;line-height:1.4}.own-face-down:hover .face-down-preview{display:block}.tutorial-content{max-width:min(760px,90vw);max-height:65vh;overflow:auto;white-space:pre-wrap;color:#dbeafe;background:#07101e;border:1px solid #315078;padding:16px;line-height:1.5;font-size:13px}@media(max-width:768px){body{padding:8px}.game-container{flex-direction:column;gap:8px}.header{max-width:none;padding:10px}.force-legend{display:none}.controls{flex-direction:row}.board{padding:6px}.player-area{padding:6px}.gy-zone{width:68px;min-height:125px}.field-zone,.hand-zone{gap:6px;min-height:145px}.card{width:82px;height:123px}.card-top-section{font-size:8px;height:20px}.card-bottom-section{height:42px;font-size:7px}.card-cost-circle{width:20px;height:20px;font-size:9px}.face-down-preview{display:none!important}}
+
+/* O jogo foi projetado para celulares em modo paisagem. */
+#rotate-device { display:none; }
+@media (max-width: 900px) and (orientation: landscape) {
+    body { padding: 6px; min-height: 100vh; }
+    .game-container { max-width: 100%; gap: 8px; }
+    .header { max-width: 190px; padding: 10px; }
+    .header h2 { font-size: 14px; }
+    .force-legend { display: none; }
+    .card { width: 72px; height: 108px; border-width: 2px; }
+    .field-zone { min-height: 112px; gap: 4px; padding: 4px; }
+    .hand-zone { min-height: 112px; gap: 4px; padding: 4px; }
+    .gy-zone { min-width: 55px; width: 55px; }
+    .card-top-section { font-size: 7px; height: 18px; border-width: 2px; }
+    .card-bottom-section { font-size: 6px; height: 36px; border-width: 2px; }
+    .card-cost-circle { width: 18px; height: 18px; font-size: 8px; border-width: 2px; }
+    .card-stats-box { font-size: 8px; border-width: 2px; }
+    .controls { gap: 6px; }
+    .action-btn { padding: 8px 6px; font-size: 10px; }
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+    /* No celular em pé o jogo ocupa toda a tela, sem exigir rotação. */
+    body {
+        padding: 3px;
+        min-height: 100dvh;
+        overflow: auto;
+    }
+
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        min-height: calc(100dvh - 6px);
+        gap: 5px;
+    }
+
+    .header {
+        max-width: none;
+        width: 100%;
+        padding: 6px;
+        gap: 5px;
+        flex-shrink: 0;
+    }
+
+    .stats-table {
+        width: 100%;
+        font-size: 10px;
+    }
+
+    .turn-info {
+        width: 100%;
+    }
+
+    .turn-info h2 {
+        font-size: 12px;
+    }
+
+    .initiative-badge {
+        font-size: 10px;
+        padding: 3px 7px;
+    }
+
+    .force-legend {
+        display: none;
+    }
+
+    .controls {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+    }
+
+    .controls .action-btn {
+        min-width: 0;
+        width: 100%;
+        padding: 7px 4px;
+        font-size: 10px;
+        line-height: 1.15;
+    }
+
+    .main-content {
+        width: 100%;
+        gap: 5px;
+    }
+
+    .board {
+        gap: 5px;
+    }
+
+    .player-area {
+        padding: 4px;
+        border-width: 1px;
+    }
+
+    .player-area > div:first-child,
+    .player-area > div:nth-last-child(2) {
+        font-size: 9px !important;
+        margin-bottom: 2px !important;
+        margin-top: 2px !important;
+    }
+
+    .zones-container {
+        gap: 4px;
+    }
+
+    .field-zone {
+        min-height: 92px;
+        gap: 4px;
+        padding: 3px;
+    }
+
+    .hand-zone {
+        min-height: 96px;
+        gap: 4px;
+        padding: 3px;
+        margin-top: 2px;
+    }
+
+    .gy-zone {
+        width: 48px;
+        min-width: 48px;
+        min-height: 92px;
+        padding: 3px;
+    }
+
+    .gy-zone > div:first-child {
+        font-size: 8px !important;
+    }
+
+    .card {
+        width: 67px;
+        height: 101px;
+        flex: 0 0 67px;
+    }
+
+    .card-top-section {
+        font-size: 6px;
+        height: 16px;
+    }
+
+    .card-bottom-section {
+        height: 30px;
+        font-size: 5.5px;
+    }
+
+    .card-cost-circle {
+        width: 16px;
+        height: 16px;
+        font-size: 8px;
+    }
+
+    .card-stats-box {
+        font-size: 7px;
+    }
+
+    .tutorial-content {
+        max-width: 94vw;
+        max-height: 70dvh;
+        padding: 10px;
+        font-size: 11px;
+    }
+
+    #rotate-device {
+        display: none !important;
+    }
+
+    #toast-container {
+        top: 5px;
+        right: 5px;
+        left: 5px;
+        gap: 5px;
+    }
+
+    .toast {
+        max-width: 100%;
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+}
+
+/* CELULAR: jogo somente em modo horizontal */
+@media (max-width: 900px) and (orientation: portrait) {
+    body {
+        overflow: hidden !important;
+        min-height: 100dvh;
+        padding: 0 !important;
+    }
+
+    /* Bloqueia a interface enquanto o aparelho estiver em pé. */
+    .game-container,
+    #deck-builder,
+    #toast-container,
+    #combat-svg {
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    #rotate-device {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 99999 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-direction: column !important;
+        gap: 14px !important;
+        padding: 25px !important;
+        background: #07101e !important;
+        color: white !important;
+        text-align: center !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+        line-height: 1.4 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+
+    #rotate-device::before {
+        content: "↔";
+        display: block;
+        font-size: 58px;
+        line-height: 1;
+    }
+}
