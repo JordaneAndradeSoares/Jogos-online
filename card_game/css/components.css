@@ -657,3 +657,82 @@ font-size: 11px;
 font-weight: 900;
 opacity: .95;
 }
+
+
+/* EFEITO MANUAL — CUSTO X */
+.effect-activate-btn {
+    background: #0984e3;
+}
+
+.effect-activate-btn:disabled,
+#confirm-attack-btn:disabled {
+    opacity: .45 !important;
+    filter: grayscale(1);
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+}
+
+.effect-activate-btn:not(:disabled),
+#confirm-attack-btn:not(:disabled) {
+    cursor: pointer;
+}
+
+/* BOTÃO DE PAUSA */
+.pause-game-btn {
+    display: block;
+    width: 100%;
+    margin-top: 7px;
+    padding: 5px 10px;
+
+    border: 1px solid #315078;
+    border-radius: 4px;
+
+    background: #18283d;
+    color: #b9c9dd;
+
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.pause-game-btn:hover {
+    background: #263d59;
+    border-color: #67e8f9;
+    color: white;
+}
+
+.pause-game-btn.paused {
+    background: #315078;
+    border-color: #67e8f9;
+    color: #67e8f9;
+}
+
+
+/*
+ * Quando o jogo está pausado, o tabuleiro recebe
+ * uma camada visual para deixar claro que nenhuma
+ * ação pode ser realizada.
+ */
+body.game-paused .game-container {
+    opacity: 0.72;
+}
+
+body.game-paused .pause-game-btn {
+    opacity: 1;
+}
+
+/*
+ * Mantém o botão de pausa totalmente utilizável
+ * mesmo quando o jogo estiver pausado.
+ */
+body.game-paused .pause-game-btn {
+    position: relative;
+    z-index: 10001;
+}

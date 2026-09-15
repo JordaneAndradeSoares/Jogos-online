@@ -186,13 +186,12 @@ function handleCardClick(owner, zone, index) {
         return;
     }
 
-    if (!cartaPodeAtacar(carta)) {
-        showToast(
-            "Esta carta não pode atacar.",
-            "warning"
-        );
-        return;
-    }
-
-    openAttackModal(index);
+    /*
+     * Toda carta virada para cima no campo abre o mesmo menu:
+     * - Ativar efeito Custo X (quando disponível);
+     * - Atacar (quando disponível).
+     *
+     * Botões indisponíveis ficam cinza/desabilitados.
+     */
+    abrirMenuDeAcaoDaCarta(index);
 }

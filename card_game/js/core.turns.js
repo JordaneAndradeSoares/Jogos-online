@@ -300,12 +300,21 @@ function atualizarTemporizadorAcao() {
 
     if (!elementoTempo && !elementoTempoTutorial) return;
 
-    const tempo = Math.max(
-        0,
-        Math.ceil((state.prazoAcao - Date.now()) / 1000)
-    );
+    let tempo = state.tempoRestanteAcao;
 
-    state.tempoRestanteAcao = tempo;
+    /*
+     * Enquanto o jogo estiver rodando, o tempo é calculado pelo prazo.
+     * Durante a pausa, mantemos o valor salvo e não deixamos o relógio
+     * continuar diminuindo.
+     */
+    if (!state.jogoPausado && state.prazoAcao !== null) {
+        tempo = Math.max(
+            0,
+            Math.ceil((state.prazoAcao - Date.now()) / 1000)
+        );
+
+        state.tempoRestanteAcao = tempo;
+    }
 
     if (elementoTempo) {
         elementoTempo.textContent = `${tempo}s`;
@@ -324,17 +333,115 @@ function atualizarTemporizadorAcao() {
     }
 }
 
+/*
+ * Executa a consequência de o cronômetro chegar a zero.
+ *
+ * Esta função fica separada do intervalo do cronômetro para que a pausa
+ * possa interromper o intervalo sem duplicar toda a lógica de expiração.
+ */
+function finalizarTemporizadorPorExpiracao() {
+    const jogadorQueTerminouOTempo =
+        state.activeAttack &&
+        state.activeAttack.attackerOwner === 'p2'
+            ? 'p1'
+            : state.initiativeOwner;
+
+    /*
+     * Se o jogador tiver mais de 8 cartas, primeiro descarta uma carta
+     * aleatória. Enquanto ainda estiver acima de 8, o cronômetro volta
+     * a contar para permitir os descartes restantes.
+     */
+    if (
+        jogadorQueTerminouOTempo &&
+        state.players[jogadorQueTerminouOTempo] &&
+        state.players[jogadorQueTerminouOTempo].hand.length > 8
+    ) {
+        const descartou =
+            descartarUmaCartaAleatoriaPorTempo(
+                jogadorQueTerminouOTempo
+            );
+
+        if (descartou) {
+            if (
+                state.players[jogadorQueTerminouOTempo].hand.length > 8
+            ) {
+                iniciarTemporizadorAcao();
+                return;
+            }
+
+            /*
+             * Depois de ficar com no máximo 8 cartas, a ação termina.
+             */
+            if (
+                state.activeAttack &&
+                state.activeAttack.attackerOwner === 'p2'
+            ) {
+                passBlock();
+            } else {
+                passAction(jogadorQueTerminouOTempo);
+            }
+
+            return;
+        }
+    }
+
+    if (typeof showToast === 'function') {
+        showToast(
+            'Tempo esgotado! A vez passa automaticamente.',
+            'warning'
+        );
+    }
+
+    /*
+     * Durante um bloqueio, o tempo esgotado encerra automaticamente
+     * a decisão de bloqueio.
+     */
+    if (
+        state.activeAttack &&
+        state.activeAttack.attackerOwner === 'p2'
+    ) {
+        passBlock();
+        return;
+    }
+
+    /*
+     * Ação normal:
+     * passa a iniciativa para o próximo jogador.
+     * passAction() também reinicia o cronômetro.
+     */
+    if (state.initiativeOwner === 'p1') {
+        passAction('p1');
+    } else {
+        passAction('p2');
+    }
+}
+
 function iniciarTemporizadorAcao() {
     if (state.intervaloTemporizadorAcao) {
         clearInterval(state.intervaloTemporizadorAcao);
+        state.intervaloTemporizadorAcao = null;
     }
 
-    state.prazoAcao = Date.now() + state.tempoLimiteAcao * 1000;
-    state.tempoRestanteAcao = state.tempoLimiteAcao;
+    /*
+     * Não inicia um novo cronômetro enquanto o jogo estiver pausado.
+     */
+    if (state.jogoPausado) {
+        return;
+    }
+
+    state.prazoAcao =
+        Date.now() + state.tempoLimiteAcao * 1000;
+
+    state.tempoRestanteAcao =
+        state.tempoLimiteAcao;
 
     atualizarTemporizadorAcao();
 
     state.intervaloTemporizadorAcao = setInterval(() => {
+        if (state.jogoPausado) {
+            return;
+        }
+
         atualizarTemporizadorAcao();
 
         if (Date.now() >= state.prazoAcao) {
@@ -342,64 +449,9 @@ function iniciarTemporizadorAcao() {
             state.intervaloTemporizadorAcao = null;
             state.tempoRestanteAcao = 0;
 
-            const jogadorQueTerminouOTempo =
-                state.activeAttack &&
-                state.activeAttack.attackerOwner === 'p2'
-                    ? 'p1'
-                    : state.initiativeOwner;
+            atualizarTemporizadorAcao();
 
-            if (
-                jogadorQueTerminouOTempo &&
-                state.players[jogadorQueTerminouOTempo] &&
-                state.players[jogadorQueTerminouOTempo].hand.length > 8
-            ) {
-                const descartou =
-                    descartarUmaCartaAleatoriaPorTempo(
-                        jogadorQueTerminouOTempo
-                    );
-
-                if (descartou) {
-                    /*
-                     * Se ainda houver mais de 8 cartas,
-                     * o jogador continua na mesma ação.
-                     * A cada novo estouro de tempo, uma única
-                     * carta será descartada aleatoriamente.
-                     */
-                    if (
-                        state.players[jogadorQueTerminouOTempo].hand.length > 8
-                    ) {
-                        iniciarTemporizadorAcao();
-                        return;
-                    }
-
-                    /*
-                     * Depois de chegar a 8 cartas, a ação termina
-                     * normalmente.
-                     */
-                    if (
-                        state.activeAttack &&
-                        state.activeAttack.attackerOwner === 'p2'
-                    ) {
-                        passBlock();
-                    } else {
-                        passAction(jogadorQueTerminouOTempo);
-                    }
-
-                    return;
-                }
-            }
-
-            if (typeof showToast === 'function') {
-                showToast('Tempo esgotado! A vez passa automaticamente.', 'warning');
-            }
-
-            if (state.activeAttack && state.activeAttack.attackerOwner === 'p2') {
-                passBlock();
-            } else if (state.initiativeOwner === 'p1') {
-                passAction('p1');
-            } else {
-                passAction('p2');
-            }
+            finalizarTemporizadorPorExpiracao();
         }
     }, 250);
 }
@@ -408,6 +460,131 @@ function pararTemporizadorAcao() {
     if (state.intervaloTemporizadorAcao) {
         clearInterval(state.intervaloTemporizadorAcao);
         state.intervaloTemporizadorAcao = null;
+    }
+}
+
+
+/* =========================================================
+   PAUSA DO JOGO
+========================================================= */
+
+function alternarPausaJogo() {
+    if (state.jogoPausado) {
+        continuarJogo();
+    } else {
+        pausarJogo();
+    }
+}
+
+function pausarJogo() {
+    if (state.jogoPausado) {
+        return;
+    }
+
+    /*
+     * Calcula e salva o tempo exato que ainda restava antes de pausar.
+     */
+    if (state.prazoAcao !== null) {
+        state.tempoRestanteAcao = Math.max(
+            0,
+            Math.ceil(
+                (state.prazoAcao - Date.now()) / 1000
+            )
+        );
+    }
+
+    state.tempoRestanteAntesDaPausa =
+        state.tempoRestanteAcao;
+
+    pararTemporizadorAcao();
+
+    state.jogoPausado = true;
+
+    atualizarTemporizadorAcao();
+    atualizarInterfacePausa();
+}
+
+function continuarJogo() {
+    if (!state.jogoPausado) {
+        return;
+    }
+
+    state.jogoPausado = false;
+
+    state.tempoRestanteAcao =
+        Math.max(
+            0,
+            Number(state.tempoRestanteAntesDaPausa) || 0
+        );
+
+    /*
+     * Se a pausa aconteceu exatamente quando o tempo acabou,
+     * passa a vez imediatamente em vez de deixar o jogo travado.
+     */
+    if (state.tempoRestanteAcao <= 0) {
+        state.prazoAcao = Date.now();
+
+        atualizarInterfacePausa();
+        atualizarTemporizadorAcao();
+
+        finalizarTemporizadorPorExpiracao();
+        return;
+    }
+
+    /*
+     * Cria um novo prazo usando somente o tempo que havia sido salvo.
+     */
+    state.prazoAcao =
+        Date.now() +
+        state.tempoRestanteAcao * 1000;
+
+    atualizarInterfacePausa();
+    atualizarTemporizadorAcao();
+
+    /*
+     * Retoma o intervalo do cronômetro sem resetar para 60 segundos.
+     */
+    if (state.intervaloTemporizadorAcao) {
+        clearInterval(state.intervaloTemporizadorAcao);
+    }
+
+    state.intervaloTemporizadorAcao = setInterval(() => {
+        if (state.jogoPausado) {
+            return;
+        }
+
+        atualizarTemporizadorAcao();
+
+        if (Date.now() >= state.prazoAcao) {
+            clearInterval(state.intervaloTemporizadorAcao);
+            state.intervaloTemporizadorAcao = null;
+            state.tempoRestanteAcao = 0;
+
+            atualizarTemporizadorAcao();
+
+            finalizarTemporizadorPorExpiracao();
+        }
+    }, 250);
+}
+
+function atualizarInterfacePausa() {
+    const overlay =
+        document.getElementById('pause-overlay');
+
+    const botao =
+        document.getElementById('pause-game-btn');
+
+    if (overlay) {
+        overlay.classList.toggle(
+            'visible',
+            state.jogoPausado
+        );
+    }
+
+    if (botao) {
+        botao.textContent = state.jogoPausado
+            ? '▶ Continuar'
+            : '⏸ Pausar';
     }
 }
 
@@ -444,7 +621,10 @@ if (state.consecutivePasses >= 2) {
         state.initiativeOwner === 'p2' &&
         typeof executeEnemyTurn === 'function'
     ) {
-        setTimeout(executeEnemyTurn, 700);
+        setTimeout(() => {
+            if (state.jogoPausado) return;
+            executeEnemyTurn();
+        }, 700);
     }
 }
 
@@ -474,7 +654,10 @@ if (
     state.initiativeOwner === 'p2' &&
     typeof executeEnemyTurn === 'function'
 ) {
-    setTimeout(executeEnemyTurn, 700);
+    setTimeout(() => {
+        if (state.jogoPausado) return;
+        executeEnemyTurn();
+    }, 700);
 }
 
 iniciarTemporizadorAcao();
@@ -698,7 +881,8 @@ const erros = [];
 const contagem = {
 campo: 0,
 destruido: 0,
-ativo: 0
+ativo: 0,
+custo: 0
 };
 
 

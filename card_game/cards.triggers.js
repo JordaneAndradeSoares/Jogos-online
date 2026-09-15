@@ -1,7 +1,8 @@
 const GATILHOS_EFEITOS = Object.freeze([
     'campo',
     'destruido',
-    'ativo'
+    'ativo',
+    'custo'
 ]);
 
 /*
@@ -41,6 +42,23 @@ function obterGatilhoDaCarta(carta) {
 
     if (descricao.includes('[ativo]')) {
         return 'ativo';
+    }
+
+    /*
+     * CUSTO X
+     *
+     * É um efeito ativável manualmente. O X pode ser:
+     * - um número escrito na descrição; ou
+     * - o placeholder X, caso a carta use o custo da própria carta
+     *   (ou activationCost/activeCost, quando informado).
+     */
+    if (
+        /(?:\[\s*)?custo\s+(?:x|\d+)(?:\s*\])?/i.test(
+            String(carta.desc || '')
+        ) ||
+        String(carta.gatilho || '').toLowerCase() === 'custo'
+    ) {
+        return 'custo';
     }
 
     return null;
@@ -242,6 +260,116 @@ function obterAlvosValidosDoEfeito(carta, owner) {
 }
 
 
+
+/*
+ * Retorna o custo de ativação de um efeito "Custo X".
+ *
+ * Prioridade:
+ * 1. activationCost / activeCost / custoAtivacao, se a carta definir;
+ * 2. número escrito depois de "Custo";
+ * 3. custo original da própria carta quando estiver escrito "Custo X".
+ */
+function obterCustoDeAtivacao(carta) {
+    if (!carta) return 0;
+
+    const custoConfigurado =
+        carta.activationCost ??
+        carta.activeCost ??
+        carta.custoAtivacao;
+
+    if (
+        custoConfigurado !== undefined &&
+        custoConfigurado !== null &&
+        Number.isFinite(Number(custoConfigurado))
+    ) {
+        return Math.max(0, Number(custoConfigurado));
+    }
+
+    const descricao = String(carta.desc || '');
+    const correspondencia = descricao.match(
+        /(?:\[\s*)?custo\s+(\d+)(?:\s*\])?/i
+    );
+
+    if (correspondencia) {
+        return Math.max(0, Number(correspondencia[1]) || 0);
+    }
+
+    return typeof obterCustoOriginalDaCarta === 'function'
+        ? obterCustoOriginalDaCarta(carta)
+        : Math.max(0, Number(carta.cost) || 0);
+}
+
+/*
+ * Texto visível da carta:
+ * "Custo X" -> "Custo <valor>".
+ *
+ * A descrição original continua intacta para o parser dos efeitos.
+ */
+function obterDescricaoVisivelDaCarta(carta) {
+    if (!carta) return '';
+
+    const descricao = String(carta.desc || '');
+    const gatilho = obterGatilhoDaCarta(carta);
+
+    if (gatilho !== 'custo') {
+        return descricao;
+    }
+
+    const custo = obterCustoDeAtivacao(carta);
+
+    return descricao.replace(
+        /custo\s+(?:x|\d+)/i,
+        `Custo ${custo}`
+    );
+}
+
+function efeitoCustoPodeSerAtivado(carta, owner = 'p1') {
+    if (!carta || obterGatilhoDaCarta(carta) !== 'custo') {
+        return false;
+    }
+
+    if (carta.isFaceDown) return false;
+
+    const jogador = state.players?.[owner];
+    if (!jogador) return false;
+
+    if (!Array.isArray(jogador.field) || !jogador.field.includes(carta)) {
+        return false;
+    }
+
+    if (state.initiativeOwner !== owner) return false;
+    if (state.activeAttack) return false;
+    if (state.pendingDiscard?.[owner]) return false;
+
+    const custo = obterCustoDeAtivacao(carta);
+
+    if (Number(jogador.energy) < custo) return false;
+
+    if (carta._activeCostUsedTurn === state.turn) {
+        return false;
+    }
+
+    /*
+     * Se o efeito precisa de alvo, também não consideramos o botão
+     * disponível quando não existe nenhum alvo válido.
+     */
+    if (
+        typeof efeitoPrecisaDeAlvo === 'function' &&
+        efeitoPrecisaDeAlvo(carta)
+    ) {
+        const alvos = typeof obterAlvosValidosDoEfeito === 'function'
+            ? obterAlvosValidosDoEfeito(carta, owner)
+            : [];
+
+        if (!alvos.length) return false;
+    }
+
+    return true;
+}
+
+/*
+ * Cria a função que executa o texto da carta.
+ */
 /*
  * Cria a função que executa o texto da carta.
  */
@@ -316,6 +444,53 @@ function criarFuncaoDoEfeito(carta) {
 
 
         /*
+         * ATK + DEF DA PRÓPRIA CARTA
+         *
+         * Importante:
+         * Este teste precisa vir antes dos testes individuais.
+         *
+         * Exemplo:
+         * "[Custo X] Recebe +3 ATK e +1 DEF"
+         *
+         * Os dois valores são aplicados na mesma ativação.
+         */
+        let atkDef =
+            descricao.match(
+                /\+(\d+)\s+atk.*\+(\d+)\s+def/
+            );
+
+        if (atkDef) {
+            return CardEffects.buffSelf(
+                contexto,
+                Number(atkDef[1]),
+                Number(atkDef[2])
+            );
+        }
+
+
+        /*
+         * DEF + ATK DA PRÓPRIA CARTA
+         *
+         * Mantém o parser funcionando caso alguma carta
+         * seja escrita na ordem inversa:
+         *
+         * "+1 DEF e +3 ATK"
+         */
+        let defAtk =
+            descricao.match(
+                /\+(\d+)\s+def.*\+(\d+)\s+atk/
+            );
+
+        if (defAtk) {
+            return CardEffects.buffSelf(
+                contexto,
+                Number(defAtk[2]),
+                Number(defAtk[1])
+            );
+        }
+
+
+        /*
          * ATK
          */
         correspondencia =
@@ -368,7 +543,6 @@ function criarFuncaoDoEfeito(carta) {
         return false;
     };
 }
-
 
 /*
  * Cria os efeitos da carta.

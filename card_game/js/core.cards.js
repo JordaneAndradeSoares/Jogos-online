@@ -40,6 +40,7 @@ function initGame(playerDeckNames, enemyDeckNames) {
     state.effectStack = [];
     state.selectedCardIndex = null;
     state.activeAttack = null;
+    state.pendingCostActivation = null;
     state.pendingDiscard = { p1: false, p2: false };
 
     state.players.p1 = {
@@ -101,6 +102,7 @@ function sendCardToGraveyard(card, playerKey, isDestroyed = false) {
     card.attackedLastTurn = false;
     card.lastAttackTurn = null;
     card.isResting = false;
+    card._activeCostUsedTurn = null;
     state.players[playerKey].gy.push(card);
 }
 

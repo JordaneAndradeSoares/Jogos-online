@@ -53,9 +53,15 @@
             <div class="turn-info">
                 <h2>Número do turno: <span id="turn-display">1</span></h2>
                 <div class="initiative-badge" id="initiative-display">Sua Vez</div>
-                <div class="action-timer-box">
+                    <div class="action-timer-box">
+                        
                     TEMPO DA AÇÃO:
+                    
                     <span id="action-timer">60s</span>
+
+                    <button id="pause-game-btn" class="pause-game-btn" onclick="alternarPausaJogo()">
+                        ⏸ Pausar
+                    </button>
                 </div>
             </div>
 
@@ -169,10 +175,28 @@
     </div>
 
     <div class="modal" id="attack-modal">
-        <h3 style="color:white;" id="attack-modal-title">Iniciar ataque com esta unidade?</h3>
+        <h3 style="color:white;" id="attack-modal-title">Escolha uma ação para esta unidade</h3>
         <div class="modal-content">
-            <button class="action-btn" style="background-color: #d63031;" onclick="confirmAttack()">Sim, Atacar</button>
-            <button class="action-btn" style="background-color: #636e72;" onclick="closeAttackModal()">Cancelar</button>
+            <button
+                id="activate-effect-btn"
+                class="action-btn effect-activate-btn"
+                onclick="ativarEfeitoCustoDaCarta()"
+                disabled
+            >Ativar efeito</button>
+
+            <button
+                id="confirm-attack-btn"
+                class="action-btn"
+                style="background-color: #d63031;"
+                onclick="confirmAttack()"
+                disabled
+            >Atacar</button>
+
+            <button
+                class="action-btn"
+                style="background-color: #636e72;"
+                onclick="closeAttackModal()"
+            >Cancelar</button>
         </div>
     </div>
 
@@ -205,9 +229,15 @@
 <div class="modal" id="tutorial-modal">
     <h3 style="color:white;">Regras do jogo</h3>
 
-    <div class="tutorial-timer">
+    <div class="action-timer-box">
         TEMPO DA AÇÃO:
+
+        <!-- Usar id="tutorial-action-timer" -->
         <span id="tutorial-action-timer">60s</span>
+
+        <button id="pause-game-btn" class="pause-game-btn" onclick="alternarPausaJogo()">
+            ⏸ Pausar
+        </button>
     </div>
 
     <pre id="tutorial-content" class="tutorial-content"></pre>

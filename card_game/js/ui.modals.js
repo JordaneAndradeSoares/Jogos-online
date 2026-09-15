@@ -106,6 +106,82 @@ function openAttackModal(index) {
     if (modal) modal.style.display = 'flex';
 }
 
+function atualizarBotoesDeAcaoDaCarta(carta) {
+    const botaoAtivar = document.getElementById('activate-effect-btn');
+    const botaoAtacar = document.getElementById('confirm-attack-btn');
+
+    if (!carta) return;
+
+    const podeAtivar =
+        typeof efeitoCustoPodeSerAtivado === 'function' &&
+        efeitoCustoPodeSerAtivado(carta, 'p1');
+
+    const custo =
+        typeof obterCustoDeAtivacao === 'function'
+            ? obterCustoDeAtivacao(carta)
+            : 0;
+
+    if (botaoAtivar) {
+        const temGatilhoCusto =
+            typeof obterGatilhoDaCarta === 'function' &&
+            obterGatilhoDaCarta(carta) === 'custo';
+
+        botaoAtivar.disabled = !podeAtivar;
+        botaoAtivar.textContent = temGatilhoCusto
+            ? `Ativar efeito (Custo ${custo})`
+            : 'Ativar efeito';
+        botaoAtivar.title = !temGatilhoCusto
+            ? 'Esta carta não possui um efeito Custo X ativável.'
+            : !podeAtivar
+                ? (
+                    carta._activeCostUsedTurn === state.turn
+                        ? 'Efeito já ativado neste turno.'
+                        : 'Efeito indisponível: confira posição, iniciativa, energia e alvo.'
+                )
+                : `Ativar pagando ${custo} de energia.`;
+    }
+
+    if (botaoAtacar) {
+        const podeAtacar =
+            typeof cartaPodeAtacar === 'function' &&
+            cartaPodeAtacar(carta);
+
+        botaoAtacar.disabled = !podeAtacar;
+        botaoAtacar.title = podeAtacar
+            ? 'Atacar com esta criatura.'
+            : 'Esta carta não pode atacar agora.';
+    }
+}
+
+function abrirMenuDeAcaoDaCarta(index) {
+    if (state.initiativeOwner !== 'p1' || state.activeAttack) {
+        showToast('Aguarde sua iniciativa para realizar esta ação.', 'warning');
+        return;
+    }
+
+    const carta = state.players.p1.field[index];
+    if (!carta || carta.isFaceDown) return;
+
+    selectedCardToAttackIndex = index;
+
+    const attackerEl = document.getElementById(`p1-field-card-${index}`);
+    if (attackerEl) attackerEl.classList.add('card-attacking');
+
+    const modalTitle = document.getElementById('attack-modal-title');
+    if (modalTitle) {
+        modalTitle.innerText = `Escolha uma ação para "${carta.name}"`;
+    }
+
+    atualizarBotoesDeAcaoDaCarta(carta);
+
+    const modal = document.getElementById('attack-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function openAttackModal(index) {
+    abrirMenuDeAcaoDaCarta(index);
+}
+
 function closeAttackModal() {
     if (selectedCardToAttackIndex !== null) {
         const attackerEl = document.getElementById(`p1-field-card-${selectedCardToAttackIndex}`);
@@ -115,7 +191,276 @@ function closeAttackModal() {
     const modal = document.getElementById('attack-modal');
     if (modal) modal.style.display = 'none';
     selectedCardToAttackIndex = null;
+
     if (typeof renderUI === 'function') renderUI();
+}
+
+// efeitos ativaveis (no campo)
+function ativarEfeitoCustoDaCarta() {
+    const index = selectedCardToAttackIndex;
+
+    if (index === null) return;
+
+    const jogador = state.players.p1;
+    const carta = jogador?.field?.[index];
+
+    if (
+        !carta ||
+        typeof efeitoCustoPodeSerAtivado !== 'function' ||
+        !efeitoCustoPodeSerAtivado(carta, 'p1')
+    ) {
+        showToast(
+            'O efeito desta carta não pode ser ativado agora.',
+            'warning'
+        );
+
+        atualizarBotoesDeAcaoDaCarta(carta);
+        return;
+    }
+
+    const custo = obterCustoDeAtivacao(carta);
+
+    /*
+     * Fecha o menu de ação.
+     *
+     * A iniciativa continua com o jogador até o efeito
+     * realmente resolver.
+     */
+    const modal = document.getElementById('attack-modal');
+
+    if (modal) {
+        modal.style.display = 'none';
+    }
+
+    /*
+     * Efeitos que precisam de alvo.
+     *
+     * A ação fica pendente até o jogador escolher o alvo.
+     */
+    if (
+        typeof efeitoPrecisaDeAlvo === 'function' &&
+        efeitoPrecisaDeAlvo(carta)
+    ) {
+        state.pendingCostActivation = {
+            carta,
+            owner: 'p1',
+            index
+        };
+
+        const elemento =
+            document.getElementById(
+                `p1-field-card-${index}`
+            );
+
+        if (elemento) {
+            elemento.classList.remove('card-attacking');
+        }
+
+        selectedCardToAttackIndex = null;
+
+        const contexto = {
+            owner: 'p1',
+            card: carta,
+
+            /*
+             * Só chama a conclusão quando o alvo
+             * tiver sido escolhido e o efeito resolvido.
+             */
+            aoConcluir: sucesso =>
+                concluirAtivacaoDeEfeitoCusto(
+                    carta,
+                    custo,
+                    sucesso
+                )
+        };
+
+        const resultado =
+            triggerEffect(
+                'custo',
+                carta,
+                contexto
+            );
+
+        /*
+         * O efeito abriu a seleção de alvo.
+         * A ação ainda não terminou.
+         */
+        if (resultado === 'pending') {
+            return;
+        }
+
+        /*
+         * Efeito resolveu imediatamente.
+         */
+        if (resultado !== false) {
+            concluirAtivacaoDeEfeitoCusto(
+                carta,
+                custo,
+                true
+            );
+        } else {
+            state.pendingCostActivation = null;
+
+            showToast(
+                `${carta.name}: o efeito não pôde ser ativado.`,
+                'warning'
+            );
+
+            if (typeof renderUI === 'function') {
+                renderUI();
+            }
+        }
+
+        return;
+    }
+
+    /*
+     * Efeito que não precisa de alvo.
+     */
+    const resultado =
+        triggerEffect(
+            'custo',
+            carta,
+            {
+                owner: 'p1',
+                card: carta
+            }
+        );
+
+    if (resultado === false) {
+        showToast(
+            `${carta.name}: o efeito não pôde ser ativado.`,
+            'warning'
+        );
+
+        if (typeof renderUI === 'function') {
+            renderUI();
+        }
+
+        return;
+    }
+
+    /*
+     * O efeito resolveu.
+     *
+     * Aqui a ação termina e a iniciativa passa
+     * imediatamente para o oponente.
+     */
+    concluirAtivacaoDeEfeitoCusto(
+        carta,
+        custo,
+        true
+    );
+}
+
+function concluirAtivacaoDeEfeitoCusto(
+    carta,
+    custo,
+    sucesso
+) {
+    /*
+     * Efeito cancelado ou que não resolveu.
+     *
+     * Não passa a vez.
+     */
+    if (!carta || !sucesso) {
+        state.pendingCostActivation = null;
+
+        if (typeof renderUI === 'function') {
+            renderUI();
+        }
+
+        return;
+    }
+
+    const jogador = state.players.p1;
+
+    /*
+     * Segurança:
+     *
+     * A carta precisa continuar no campo;
+     * o efeito não pode ter sido usado neste turno;
+     * e o jogador precisa conseguir pagar.
+     */
+    if (
+        !jogador ||
+        !jogador.field.includes(carta) ||
+        carta._activeCostUsedTurn === state.turn ||
+        jogador.energy < custo
+    ) {
+        state.pendingCostActivation = null;
+
+        showToast(
+            'Não foi possível concluir a ativação do efeito.',
+            'warning'
+        );
+
+        if (typeof renderUI === 'function') {
+            renderUI();
+        }
+
+        return;
+    }
+
+    /*
+     * Paga o custo somente agora, depois que o efeito
+     * realmente foi validado e resolvido.
+     */
+    jogador.energy -= custo;
+
+    /*
+     * Marca como utilizado neste turno.
+     */
+    carta._activeCostUsedTurn = state.turn;
+
+    state.pendingCostActivation = null;
+
+    showToast(
+        `${carta.name}: efeito ativado por ${custo} de energia.`,
+        'success'
+    );
+
+    /*
+     * Remove qualquer seleção visual.
+     */
+    if (selectedCardToAttackIndex !== null) {
+        const elemento =
+            document.getElementById(
+                `p1-field-card-${selectedCardToAttackIndex}`
+            );
+
+        if (elemento) {
+            elemento.classList.remove(
+                'card-attacking'
+            );
+        }
+    }
+
+    selectedCardToAttackIndex = null;
+
+    const modal =
+        document.getElementById(
+            'attack-modal'
+        );
+
+    if (modal) {
+        modal.style.display = 'none';
+    }
+
+    /*
+     * A ATIVAÇÃO DO EFEITO CONSUME A AÇÃO.
+     *
+     * registerActionDone() troca a iniciativa:
+     *
+     * p1 -> p2
+     *
+     * Portanto o jogador não poderá:
+     * - atacar depois de ativar;
+     * - ativar outro efeito;
+     * - realizar outra ação.
+     */
+
+    registerActionDone('p1');
 }
 
 let efeitoPendente = null;
@@ -176,6 +521,9 @@ function fecharSelecaoDeAlvoDoEfeito(cancelar = false) {
             if (indice >= 0) jogador.field.splice(indice, 1);
             sendCardToGraveyard(pendencia.carta, pendencia.owner, false);
             registerActionDone(pendencia.owner);
+        } else if (pendencia.gatilho === 'custo') {
+            state.pendingCostActivation = null;
+            if (typeof renderUI === 'function') renderUI();
         }
     }
 }

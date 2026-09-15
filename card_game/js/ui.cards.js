@@ -133,7 +133,9 @@ return `
 
     <div class="card-bottom-section">
 
-        ${card.desc}
+        ${typeof obterDescricaoVisivelDaCarta === 'function'
+            ? obterDescricaoVisivelDaCarta(card)
+            : card.desc}
 
         ${getForceHTML(card.force)}
 

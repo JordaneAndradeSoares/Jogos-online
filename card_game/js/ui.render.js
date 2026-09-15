@@ -138,19 +138,125 @@ Resumo RÁPIDO das regras:
 13. Reduza a vida inimiga a 0 para vencer.
 14. Se precisar comprar uma carta com o deck vazio, você perde.
 `;
+
 function openTutorial(){
     const modal = document.getElementById('tutorial-modal');
     const conteudo = document.getElementById('tutorial-content');
     const temporizador = document.getElementById('tutorial-action-timer');
+    const botaoPausa = document.getElementById('pause-game-btn');
 
     if (!modal || !conteudo) return;
+
+    /*
+     * Verifica se o jogo já estava pausado antes de abrir o tutorial.
+     * Se não estava, o próprio tutorial será responsável pela pausa.
+     */
+    state.tutorialPausouJogo = !state.jogoPausado;
+
+    /*
+     * PAUSA PRIMEIRO.
+     *
+     * pausarJogo() calcula o tempo restante diretamente a partir
+     * de prazoAcao e salva o valor atual em tempoRestanteAcao.
+     */
+    if (state.tutorialPausouJogo && typeof pausarJogo === 'function') {
+        pausarJogo();
+    }
 
     modal.style.display = 'flex';
     conteudo.textContent = RULES_TEXT;
 
+    /*
+     * Esconde o botão de pausa enquanto o tutorial estiver aberto.
+     */
+    if (botaoPausa) {
+        botaoPausa.dataset.tutorialHidden = 'true';
+        botaoPausa.style.display = 'none';
+    }
+
+    /*
+     * Caso exista algum botão de pausa dentro do próprio tutorial,
+     * também o esconde.
+     */
+    const botoesTutorial = modal.querySelectorAll('button');
+
+    botoesTutorial.forEach(botao => {
+        const onclick = botao.getAttribute('onclick') || '';
+
+        if (
+            onclick.includes('alternarPausaJogo') ||
+            onclick.includes('pausarJogo') ||
+            botao.textContent.includes('Pausar') ||
+            botao.textContent.includes('Continuar')
+        ) {
+            botao.dataset.tutorialHidden = 'true';
+            botao.style.display = 'none';
+        }
+    });
+
     if (temporizador) {
-        temporizador.textContent =
-            `${Math.max(0, state.tempoRestanteAcao ?? 60)}s`;
+        // Se a função de pausa não calculou o tempo restante, calculamos aqui com base no prazo (prazoAcao)
+        let tempoAtual = state.tempoRestanteAcao;
+        
+        if (tempoAtual === undefined || tempoAtual === null) {
+            if (typeof prazoAcao !== 'undefined' && prazoAcao) {
+                tempoAtual = Math.max(0, Math.ceil((prazoAcao - Date.now()) / 1000));
+            } else {
+                tempoAtual = state.tempoLimiteAcao ?? 60;
+            }
+        }
+
+        temporizador.textContent = `${Math.max(0, Number(tempoAtual))}s`;
+
+        temporizador.classList.toggle(
+            'action-timer-warning',
+            Number(tempoAtual) <= 10
+        );
     }
 }
-function closeTutorial(){const m=document.getElementById('tutorial-modal');if(m)m.style.display='none';}
+
+function closeTutorial(){
+    const modal = document.getElementById('tutorial-modal');
+    const botaoPausa = document.getElementById('pause-game-btn');
+
+    if (modal) {
+        /*
+         * Mostra novamente qualquer botão de pausa que tenha sido
+         * escondido dentro do tutorial.
+         */
+        modal.querySelectorAll('button').forEach(botao => {
+            if (botao.dataset.tutorialHidden === 'true') {
+                botao.style.display = '';
+                delete botao.dataset.tutorialHidden;
+            }
+        });
+
+        modal.style.display = 'none';
+    }
+
+    /*
+     * Mostra novamente o botão de pausa normal do jogo.
+     */
+    if (
+        botaoPausa &&
+        botaoPausa.dataset.tutorialHidden === 'true'
+    ) {
+        botaoPausa.style.display = '';
+        delete botaoPausa.dataset.tutorialHidden;
+    }
+
+    /*
+     * Se o tutorial foi quem pausou o jogo, continua a partida
+     * exatamente a partir do tempo restante salvo.
+     */
+    if (
+        state.tutorialPausouJogo &&
+        state.jogoPausado &&
+        typeof continuarJogo === 'function'
+    ) {
+        state.tutorialPausouJogo = false;
+        continuarJogo();
+    } else {
+        state.tutorialPausouJogo = false;
+    }
+}
