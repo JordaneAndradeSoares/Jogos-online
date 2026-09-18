@@ -18,7 +18,6 @@ function normalizarDescricaoEfeito(descricao) {
         .toLowerCase();
 }
 
-
 /*
  * Descobre o gatilho da carta.
  */
