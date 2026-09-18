@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Rodapé</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            background-color: #050b18;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .cta-card {
+            background: linear-gradient(
+                135deg,
+                #1565c0 0%,
+                #0b1f3a 50%,
+                #050b18 100%
+            );
+            padding: 50px 60px;
+            border-radius: 20px;
+            color: #ffffff;
+            max-width: 900px;
+            width: 90%;
+            border: 2px solid #1565c0;
+            box-shadow:
+                0 15px 40px rgba(0, 0, 0, 0.6),
+                0 0 20px rgba(0, 229, 255, 0.15);
+        }
+
+        .cta-card h3 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 35px;
+            font-weight: 600;
+            color: #ffffff;
+            text-shadow:
+                0 0 5px #00e5ff,
+                0 0 15px rgba(0, 229, 255, 0.6);
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px 30px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.1rem;
+            text-decoration: none;
+            color: #ffffff;
+            transition: 0.3s;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid rgba(21, 101, 192, 0.5);
+            border-radius: 10px;
+            background: rgba(5, 11, 24, 0.45);
+        }
+
+        .contact-item:hover {
+            color: #ffffff;
+            border-color: #00e5ff;
+            background: rgba(21, 101, 192, 0.35);
+            box-shadow:
+                0 0 10px rgba(0, 229, 255, 0.4),
+                0 0 20px rgba(0, 229, 255, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .icone {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            flex-shrink: 0;
+            border-radius: 8px;
+        }
+
+        .texto-contato {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .nome-site {
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 30px 10px;
+            }
+
+            .cta-card {
+                padding: 30px 20px;
+                width: 100%;
+            }
+
+            .cta-card h3 {
+                font-size: 1.5rem;
+            }
+
+            .contact-info {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .contact-item {
+                font-size: 1rem;
+            }
+
+            .contact-item:hover {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <section class="cta-card">
+
+        <h3>Pode entrar em contato comigo pelos sites abaixo</h3>
+
+        <div class="contact-info">
+
+            <a href="https://github.com/JordaneAndradeSoares" target="_blank" rel="noopener noreferrer" class="contact-item">
+                <img class="icone" src="icones/github.png" alt="GitHub">
+
+                <div class="texto-contato">
+                    <span class="nome-site">GitHub</span>
+                </div>
+            </a>
+
+            <a href="https://www.instagram.com/jordane_andrade_soares/" target="_blank" rel="noopener noreferrer" class="contact-item">
+                <img class="icone" src="icones/instagram.png" alt="Instagram">
+
+                <div class="texto-contato">
+                    <span class="nome-site">Instagram</span>
+                </div>
+            </a>
+
+            <a href="https://x.com/JordaneAnSo" target="_blank" rel="noopener noreferrer" class="contact-item">
+                <img class="icone" src="icones/x.png" alt="X">
+
+                <div class="texto-contato">
+                    <span class="nome-site">X (conta principal)</span>
+                </div>
+            </a>
+
+            <a href="https://x.com/jordane20234532" target="_blank" rel="noopener noreferrer" class="contact-item">
+                <img class="icone" src="icones/x.png" alt="X">
+
+                <div class="texto-contato">
+                    <span class="nome-site">X (conta secundaria)</span>
+                </div>
+            </a>
+
+            <a href="https://www.facebook.com/profile.php?id=100094722152287" target="_blank" rel="noopener noreferrer" class="contact-item">
+                <img class="icone" src="icones/facebook.png" alt="Facebook">
+
+                <div class="texto-contato">
+                    <span class="nome-site">Facebook</span>
+                </div>
+            </a>
+
+            <a href="https://www.reddit.com/user/Spiritual-Ad-8617/" target="_blank" rel="noopener noreferrer" class="contact-item">
+                <img class="icone" src="icones/reddit.png" alt="Reddit">
+
+                <div class="texto-contato">
+                    <span class="nome-site">Reddit</span>
+                </div>
+            </a>
+
+            <a href="https://kick.com/jordane-andrade-soares" target="_blank" rel="noopener noreferrer" class="contact-item">
+                <img class="icone" src="icones/kick.png" alt="Kick">
+
+                <div class="texto-contato">
+                    <span class="nome-site">Kick</span>
+                </div>
+            </a>
+
+            <a href="https://www.linkedin.com/in/jordane-andrade-soares-53a453182/" target="_blank" rel="noopener noreferrer" class="contact-item">
+                <img class="icone" src="icones/linkedin.png" alt="LinkedIn">
+
+                <div class="texto-contato">
+                    <span class="nome-site">LinkedIn</span>
+                </div>
+            </a>
+
+        </div>
+
+    </section>
+
+</body>
+</html>
