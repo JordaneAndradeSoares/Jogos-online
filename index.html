@@ -260,6 +260,15 @@
             let iframe_jogo = document.getElementById("iframe-jogo");
             let jogo_aberto = document.getElementById("jogo-aberto");
 
+            // Verifica se a área do jogo está visível e se o URL clicado é o mesmo que já está aberto
+            if (jogo_aberto.style.display === "block" && iframe_jogo.getAttribute("src") === url) {
+                // Se for o mesmo jogo, oculta a div e limpa o iframe
+                jogo_aberto.style.display = "none";
+                iframe_jogo.src = ""; // Isso impede que o jogo continue rodando e consumindo memória escondido
+                return; // Interrompe a função para não executar o código abaixo
+            }
+
+            // Se for um jogo diferente (ou se nenhum estiver aberto), carrega e exibe
             iframe_jogo.src = url;
             jogo_aberto.style.display = "block";
 
