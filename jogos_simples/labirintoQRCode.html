@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>QR Code Labirinto</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+
+<style>
+
+body {
+    margin: 0;
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+h1 {
+    margin-top: 20px;
+}
+
+input {
+    padding: 10px;
+    width: 250px;
+    font-size: 16px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#qr {
+    margin: 20px auto;
+}
+
+#labirinto {
+    display: grid;
+    justify-content: center;
+    margin: 20px auto;
+}
+
+.celula {
+    width: 20px;
+    height: 20px;
+}
+
+.parede {
+    background: black;
+}
+
+.caminho {
+    background: white;
+}
+
+.jogador {
+    background: blue;
+}
+
+#mensagem {
+    font-size: 24px;
+    color: yellow;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>QR Code Labirinto</h1>
+
+<input id="texto" value="Meu labirinto QR">
+
+<button onclick="criarJogo()">
+Criar Labirinto
+</button>
+
+
+<div id="qr"></div>
+
+<div id="labirinto"></div>
+<div id="mensagem"></div>
+
+<script>
+
+let mapa = [];
+let jogador = { linha: 0, coluna: 0 };
+let tamanhoCelula = 20;
+
+function criarQRCode(texto){
+
+    let codigo = qrcode(0,"L");
+
+    codigo.addData(texto);
+    codigo.make();
+
+    let tamanho = codigo.getModuleCount();
+
+    mapa = [];
+
+    for(let linha = 0; linha < tamanho; linha++){
+
+        let linhaMapa = [];
+
+        for(let coluna = 0; coluna < tamanho; coluna++){
+
+            if(codigo.isDark(linha,coluna)){
+                linhaMapa.push(1);
+            }
+            else{
+                linhaMapa.push(0);
+            }
+
+        }
+
+        mapa.push(linhaMapa);
+
+    }
+}
+
+function prepararMapa(){
+    let tamanho = mapa.length;
+    let novoMapa = [];
+
+    for(
+        let linha = 0;
+        linha < tamanho + 2;
+        linha++
+    ){
+
+        let novaLinha = [];
+
+        for(
+            let coluna = 0;
+            coluna < tamanho + 2;
+            coluna++
+        ){
+
+            if(
+                linha == 0 ||
+                coluna == 0 ||
+                linha == tamanho + 1 ||
+                coluna == tamanho + 1
+            ){
+
+                novaLinha.push(0);
+
+            }
+            else{
+
+                novaLinha.push(
+                    mapa[linha-1][coluna-1]
+                );
+
+            }
+
+        }
+
+        novoMapa.push(novaLinha);
+    }
+
+    mapa = novoMapa;
+
+    jogador.linha = 0;
+
+    jogador.coluna =
+    Math.floor(mapa.length / 2);
+
+    mapa[jogador.linha][jogador.coluna]=0;
+}
+
+function desenhar(){
+    let tela = document.getElementById("labirinto");
+
+    tela.innerHTML = "";
+
+    tela.style.gridTemplateColumns = `repeat(${mapa.length},${tamanhoCelula}px)`;
+
+    for(
+        let linha = 0;
+        linha < mapa.length;
+        linha++
+    ){
+        for(
+            let coluna = 0;
+            coluna < mapa.length;
+            coluna++
+        ){
+            let div = document.createElement("div");
+            div.className="celula";
+
+            if(
+                mapa[linha][coluna] == 1
+            ){
+                div.classList.add("parede");
+            }
+            else{
+                div.classList.add("caminho");
+            }
+
+            if(
+                jogador.linha == linha &&
+                jogador.coluna == coluna
+            ){
+                div.className =
+                "celula jogador";
+            }
+
+            tela.appendChild(div);
+
+        }
+    }
+}
+
+function mover(direcao){
+    let novaLinha =
+    jogador.linha;
+
+    let novaColuna =
+    jogador.coluna;
+
+    if(direcao=="cima")
+        novaLinha--;
+
+    if(direcao=="baixo")
+        novaLinha++;
+
+    if(direcao=="esquerda")
+        novaColuna--;
+
+    if(direcao=="direita")
+        novaColuna++;
+
+    if(
+        mapa[novaLinha] &&
+        mapa[novaLinha][novaColuna] === 0
+    ){
+
+        jogador.linha =
+        novaLinha;
+        jogador.coluna =
+        novaColuna;
+
+    }
+
+    desenhar();
+}
+
+document.addEventListener("keydown", function(e){
+    if(
+        e.key=="ArrowUp" ||
+        e.key=="w"
+    ){
+
+        mover("cima");
+
+    }
+
+    if(
+        e.key=="ArrowDown" ||
+        e.key=="s"
+    ){
+
+        mover("baixo");
+
+    }
+
+    if(
+        e.key=="ArrowLeft" ||
+        e.key=="a"
+    ){
+
+        mover("esquerda");
+
+    }
+
+    if(
+        e.key=="ArrowRight" ||
+        e.key=="d"
+    ){
+
+        mover("direita");
+
+    }
+});
+
+function criarJogo(){
+    let texto =
+    document.getElementById("texto").value;
+
+    criarQRCode(texto);
+    prepararMapa();
+    desenhar();
+
+    document.getElementById("mensagem")
+    .innerHTML="";
+}
+
+</script>
+
+</body>
+</html>
