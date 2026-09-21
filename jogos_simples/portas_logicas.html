@@ -5,10 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portas Lógicas</title>
     <style>
-        body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f0f0f0; font-family: Arial, sans-serif; }
-        canvas { border: 2px solid #333; background-color: white; max-width: 100%; touch-action: none; }
-        .controles { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
-        button { padding: 10px; cursor: pointer; }
+        body { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            background-color: #f0f0f0; 
+            font-family: Arial, sans-serif; 
+        }
+        canvas { 
+            border: 2px solid #333; 
+            background-color: white; 
+            max-width: 95%; 
+            height: auto; 
+            touch-action: none; 
+        }
+        .controles { 
+            margin-top: 10px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 5px; 
+            justify-content: center; 
+        }
+        button { 
+            padding: 10px 15px; 
+            cursor: pointer; 
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -54,18 +79,21 @@
         function desenhar() {
             ctx.clearRect(0, 0, 800, 400);
 
-            // Desenhar botões
+            // Desenhar botão de saída
             ctx.fillStyle = calcular_saida() ? "red" : "gray";
             ctx.fillRect(botao_saida.x, botao_saida.y, botao_saida.w, botao_saida.h);
 
+            // Botão A (Verde)
             ctx.fillStyle = "green";
             ctx.fillRect(botao_verde.x, botao_verde.y, botao_verde.w, botao_verde.h);
             if(A) { ctx.strokeStyle = "black"; ctx.lineWidth = 3; ctx.strokeRect(botao_verde.x, botao_verde.y, botao_verde.w, botao_verde.h); }
 
+            // Botão B (Azul)
             ctx.fillStyle = "blue";
             ctx.fillRect(botao_azul.x, botao_azul.y, botao_azul.w, botao_azul.h);
             if(B) { ctx.strokeStyle = "black"; ctx.lineWidth = 3; ctx.strokeRect(botao_azul.x, botao_azul.y, botao_azul.w, botao_azul.h); }
 
+            // Inversores
             ctx.fillStyle = "gray";
             ctx.fillRect(botao_inv_A.x, botao_inv_A.y, botao_inv_A.w, botao_inv_A.h);
             if(inv_A) ctx.strokeRect(botao_inv_A.x, botao_inv_A.y, botao_inv_A.w, botao_inv_A.h);
@@ -85,8 +113,14 @@
 
         function clique(e) {
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+            // Calcula o fator de escala entre o tamanho real renderizado e os 800x400 originais
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            // Ajusta as coordenadas X e Y conforme a proporção na tela
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
 
             const dentro = (b, px, py) => px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h;
 
@@ -96,8 +130,9 @@
             if (dentro(botao_inv_B, x, y)) inv_B = !inv_B;
         }
 
-        canvas.addEventListener('mousedown', clique);
-        canvas.addEventListener('touchstart', clique);
+        // 'pointerdown' unifica escuta de toque e de clique de mouse
+        canvas.addEventListener('pointerdown', clique);
+        
         desenhar();
     </script>
 </body>
