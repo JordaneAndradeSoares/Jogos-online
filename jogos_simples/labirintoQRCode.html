@@ -2,28 +2,35 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<!-- IMPORTANTE: Adapta a página para telas de celulares -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>QR Code Labirinto</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 
 <style>
-
 body {
     margin: 0;
     background: #111;
     color: white;
     font-family: Arial, sans-serif;
     text-align: center;
+    /* Evita seleções acidentais ao tocar rápido na tela */
+    user-select: none; 
+    -webkit-user-select: none;
 }
 
 h1 {
     margin-top: 20px;
+    font-size: 24px;
 }
 
 input {
     padding: 10px;
-    width: 250px;
+    width: 80%;
+    max-width: 250px; /* Responsivo */
     font-size: 16px;
+    box-sizing: border-box;
 }
 
 button {
@@ -33,18 +40,28 @@ button {
 }
 
 #qr {
-    margin: 20px auto;
+    margin: 10px auto;
+}
+
+/* Container para permitir rolagem caso o labirinto seja muito grande */
+#container-labirinto {
+    max-width: 100vw;
+    overflow: auto;
+    padding: 10px 0;
 }
 
 #labirinto {
     display: grid;
-    justify-content: center;
-    margin: 20px auto;
+    margin: 0 auto;
+    width: 95vw; /* Ocupa 95% da largura do ecrã do celular */
+    max-width: 500px; /* Limite máximo para não ficar gigante no computador */
+    aspect-ratio: 1 / 1; /* Força o labirinto a ser sempre um quadrado perfeito */
 }
 
 .celula {
-    width: 20px;
-    height: 20px;
+    /* Removendo os 20px fixos para que a célula se adapte ao espaço */
+    width: 100%;
+    height: 100%;
 }
 
 .parede {
@@ -60,9 +77,47 @@ button {
 }
 
 #mensagem {
-    font-size: 24px;
+    font-size: 20px;
     color: yellow;
+    margin: 10px;
 }
+
+/* ESTILOS DOS BOTÕES MOBILE (D-PAD) */
+#controles {
+    display: grid;
+    grid-template-areas:
+        ". cima ."
+        "esquerda baixo direita";
+    gap: 10px;
+    justify-content: center;
+    margin: 20px auto;
+}
+
+.btn-controle {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    background-color: #333;
+    color: white;
+    border: 2px solid #555;
+    border-radius: 10px;
+     touch-action: none;
+    
+    /* CENTRALIZA O CONTEÚDO DO BOTÃO*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0; /* Remove margens internas automáticas que empurram o emoji */
+}
+
+.btn-controle:active {
+    background-color: #666;
+}
+
+#btn-cima { grid-area: cima; }
+#btn-esquerda { grid-area: esquerda; }
+#btn-baixo { grid-area: baixo; }
+#btn-direita { grid-area: direita; }
 
 </style>
 
@@ -73,51 +128,72 @@ button {
 <h1>QR Code Labirinto</h1>
 
 <input id="texto" value="Meu labirinto QR">
-
-<button onclick="criarJogo()">
-Criar Labirinto
-</button>
-
+<button onclick="criarJogo()">Criar</button>
 
 <div id="qr"></div>
 
-<div id="labirinto"></div>
+<div id="container-labirinto">
+    <div id="labirinto"></div>
+</div>
+
 <div id="mensagem"></div>
 
+<!-- PAINEL DE CONTROLES MOBILE -->
+<div id="controles" style="display: none;">
+    <button id="btn-cima" class="btn-controle" 
+        onpointerdown="iniciarMovimento('cima')" onpointerup="pararMovimento()" onpointerleave="pararMovimento()" oncontextmenu="return false;">⬆️</button>
+        
+    <button id="btn-esquerda" class="btn-controle" 
+        onpointerdown="iniciarMovimento('esquerda')" onpointerup="pararMovimento()" onpointerleave="pararMovimento()" oncontextmenu="return false;">⬅️</button>
+        
+    <button id="btn-baixo" class="btn-controle" 
+        onpointerdown="iniciarMovimento('baixo')" onpointerup="pararMovimento()" onpointerleave="pararMovimento()" oncontextmenu="return false;">⬇️</button>
+        
+    <button id="btn-direita" class="btn-controle" 
+        onpointerdown="iniciarMovimento('direita')" onpointerup="pararMovimento()" onpointerleave="pararMovimento()" oncontextmenu="return false;">➡️</button>
+</div>
+
 <script>
+
+let intervaloMovimento;
+
+function iniciarMovimento(direcao) {
+    pararMovimento(); // Limpa a memória do movimento anterior
+    
+    mover(direcao); // Dá o primeiro passo imediatamente
+    
+    // Continua a mover enquanto o dedo estiver no ecrã
+    intervaloMovimento = setInterval(function() {
+        mover(direcao);
+    }, 150); 
+}
+
+function pararMovimento() {
+    clearInterval(intervaloMovimento);
+}
 
 let mapa = [];
 let jogador = { linha: 0, coluna: 0 };
 let tamanhoCelula = 20;
 
 function criarQRCode(texto){
-
     let codigo = qrcode(0,"L");
-
     codigo.addData(texto);
     codigo.make();
 
     let tamanho = codigo.getModuleCount();
-
     mapa = [];
 
     for(let linha = 0; linha < tamanho; linha++){
-
         let linhaMapa = [];
-
         for(let coluna = 0; coluna < tamanho; coluna++){
-
             if(codigo.isDark(linha,coluna)){
                 linhaMapa.push(1);
-            }
-            else{
+            } else {
                 linhaMapa.push(0);
             }
-
         }
-
         mapa.push(linhaMapa);
-
     }
 }
 
@@ -125,178 +201,123 @@ function prepararMapa(){
     let tamanho = mapa.length;
     let novoMapa = [];
 
-    for(
-        let linha = 0;
-        linha < tamanho + 2;
-        linha++
-    ){
-
+    for(let linha = 0; linha < tamanho + 2; linha++){
         let novaLinha = [];
-
-        for(
-            let coluna = 0;
-            coluna < tamanho + 2;
-            coluna++
-        ){
-
-            if(
-                linha == 0 ||
-                coluna == 0 ||
-                linha == tamanho + 1 ||
-                coluna == tamanho + 1
-            ){
-
+        for(let coluna = 0; coluna < tamanho + 2; coluna++){
+            if(linha == 0 || coluna == 0 || linha == tamanho + 1 || coluna == tamanho + 1){
                 novaLinha.push(0);
-
+            } else {
+                novaLinha.push(mapa[linha-1][coluna-1]);
             }
-            else{
-
-                novaLinha.push(
-                    mapa[linha-1][coluna-1]
-                );
-
-            }
-
         }
-
         novoMapa.push(novaLinha);
     }
 
     mapa = novoMapa;
-
     jogador.linha = 0;
-
-    jogador.coluna =
-    Math.floor(mapa.length / 2);
-
-    mapa[jogador.linha][jogador.coluna]=0;
+    jogador.coluna = Math.floor(mapa.length / 2);
+    mapa[jogador.linha][jogador.coluna] = 0;
 }
 
 function desenhar(){
     let tela = document.getElementById("labirinto");
-
     tela.innerHTML = "";
 
-    tela.style.gridTemplateColumns = `repeat(${mapa.length},${tamanhoCelula}px)`;
+    // Divide o ecrã em partes iguais (1fr) para colunas e linhas
+    tela.style.gridTemplateColumns = `repeat(${mapa.length}, 1fr)`;
+    tela.style.gridTemplateRows = `repeat(${mapa.length}, 1fr)`;
 
-    for(
-        let linha = 0;
-        linha < mapa.length;
-        linha++
-    ){
-        for(
-            let coluna = 0;
-            coluna < mapa.length;
-            coluna++
-        ){
+    for(let linha = 0; linha < mapa.length; linha++){
+        for(let coluna = 0; coluna < mapa.length; coluna++){
             let div = document.createElement("div");
-            div.className="celula";
+            div.className = "celula";
 
-            if(
-                mapa[linha][coluna] == 1
-            ){
+            if(mapa[linha][coluna] == 1){
                 div.classList.add("parede");
-            }
-            else{
+            } else {
                 div.classList.add("caminho");
             }
 
-            if(
-                jogador.linha == linha &&
-                jogador.coluna == coluna
-            ){
-                div.className =
-                "celula jogador";
+            if(jogador.linha == linha && jogador.coluna == coluna){
+                div.className = "celula jogador";
             }
 
             tela.appendChild(div);
-
         }
     }
 }
 
 function mover(direcao){
-    let novaLinha =
-    jogador.linha;
+    let novaLinha = jogador.linha;
+    let novaColuna = jogador.coluna;
 
-    let novaColuna =
-    jogador.coluna;
+    if(direcao == "cima") novaLinha--;
+    if(direcao == "baixo") novaLinha++;
+    if(direcao == "esquerda") novaColuna--;
+    if(direcao == "direita") novaColuna++;
 
-    if(direcao=="cima")
-        novaLinha--;
-
-    if(direcao=="baixo")
-        novaLinha++;
-
-    if(direcao=="esquerda")
-        novaColuna--;
-
-    if(direcao=="direita")
-        novaColuna++;
-
-    if(
-        mapa[novaLinha] &&
-        mapa[novaLinha][novaColuna] === 0
-    ){
-
-        jogador.linha =
-        novaLinha;
-        jogador.coluna =
-        novaColuna;
-
+    if(mapa[novaLinha] && mapa[novaLinha][novaColuna] === 0){
+        jogador.linha = novaLinha;
+        jogador.coluna = novaColuna;
     }
 
     desenhar();
 }
 
+// Eventos de Teclado (Computador)
 document.addEventListener("keydown", function(e){
-    if(
-        e.key=="ArrowUp" ||
-        e.key=="w"
-    ){
-
-        mover("cima");
-
+    // Prevenir rolagem da tela ao usar as setinhas
+    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.key) > -1) {
+        e.preventDefault();
     }
-
-    if(
-        e.key=="ArrowDown" ||
-        e.key=="s"
-    ){
-
-        mover("baixo");
-
-    }
-
-    if(
-        e.key=="ArrowLeft" ||
-        e.key=="a"
-    ){
-
-        mover("esquerda");
-
-    }
-
-    if(
-        e.key=="ArrowRight" ||
-        e.key=="d"
-    ){
-
-        mover("direita");
-
-    }
+    
+    if(e.key=="ArrowUp" || e.key=="w") mover("cima");
+    if(e.key=="ArrowDown" || e.key=="s") mover("baixo");
+    if(e.key=="ArrowLeft" || e.key=="a") mover("esquerda");
+    if(e.key=="ArrowRight" || e.key=="d") mover("direita");
 });
 
+// Eventos de Toque / Swipe (Deslizar no Celular)
+let touchStartX = 0;
+let touchStartY = 0;
+
+document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+}, false);
+
+document.addEventListener('touchend', function(e) {
+    let touchEndX = e.changedTouches[0].screenX;
+    let touchEndY = e.changedTouches[0].screenY;
+    
+    let difX = touchEndX - touchStartX;
+    let difY = touchEndY - touchStartY;
+
+    // Só aciona se o movimento for longo o suficiente (evita toques acidentais)
+    if (Math.abs(difX) > 40 || Math.abs(difY) > 40) {
+        if (Math.abs(difX) > Math.abs(difY)) {
+            // Movimento Horizontal
+            if (difX > 0) mover("direita");
+            else mover("esquerda");
+        } else {
+            // Movimento Vertical
+            if (difY > 0) mover("baixo");
+            else mover("cima");
+        }
+    }
+}, false);
+
 function criarJogo(){
-    let texto =
-    document.getElementById("texto").value;
+    let texto = document.getElementById("texto").value;
+    
+    // Mostra os controles só depois que o jogo começa
+    document.getElementById("controles").style.display = "grid"; 
 
     criarQRCode(texto);
     prepararMapa();
     desenhar();
 
-    document.getElementById("mensagem")
-    .innerHTML="";
+    document.getElementById("mensagem").innerHTML = "";
 }
 
 </script>
