@@ -21,7 +21,7 @@ function renderFusionMaterialModal() {
     if (!pending || !modal || !container || !title || !confirm) return;
 
     const candidates = getFusionMaterialCandidates(pending.playerKey, pending.card);
-    const minimum = getFusionMinimumMaterials(pending.card);
+    const required = getFusionRequiredMaterials(pending.card);
     const selected = pending.selectedMaterials || [];
 
     title.textContent = `Escolha as matérias para ${pending.card.name}`;
@@ -44,8 +44,8 @@ function renderFusionMaterialModal() {
         container.appendChild(option);
     });
 
-    confirm.disabled = selected.length < minimum;
-    confirm.textContent = `Invocar Fusão (${selected.length}/${minimum} mín.)`;
+    confirm.disabled = selected.length !== required;
+    confirm.textContent = `Invocar Fusão (${selected.length}/${required})`;
     modal.style.display = 'flex';
 }
 
@@ -63,6 +63,11 @@ function toggleFusionMaterial(zone, index) {
     if (existing >= 0) {
         pending.selectedMaterials.splice(existing, 1);
     } else {
+        const required = getFusionRequiredMaterials(pending.card);
+        if (pending.selectedMaterials.length >= required) {
+            showToast(`Esta Fusão requer exatamente ${required} matérias.`, 'warning');
+            return;
+        }
         pending.selectedMaterials.push({ card, zone });
     }
 

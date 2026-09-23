@@ -20,7 +20,7 @@ function getPolymorphCost(card) {
     return Math.max(0, obterCustoOriginalDaCarta(card) - 1);
 }
 
-function getFusionMinimumMaterials(card) {
+function getFusionRequiredMaterials(card) {
     return Math.max(2, Number(card?.minMaterials) || 0);
 }
 
@@ -165,9 +165,9 @@ function canInvokeCardNow(playerKey, card, zone, index) {
 
         if (isFusionCard(card)) {
             const candidates = getFusionMaterialCandidates(playerKey, card);
-            const minimum = getFusionMinimumMaterials(card);
+            const required = getFusionRequiredMaterials(card);
 
-            if (candidates.length < minimum) return false;
+            if (candidates.length < required) return false;
 
             // Uma Fusão ocupa uma única vaga, mas suas matérias que já
             // estão no campo deixam vagas livres ao serem substituídas.
@@ -211,11 +211,11 @@ function prepareExtraDeckSummon(playerKey, extraIndex) {
     }
 
     const candidates = getFusionMaterialCandidates(playerKey, card);
-    const minimum = getFusionMinimumMaterials(card);
+    const required = getFusionRequiredMaterials(card);
 
-    if (candidates.length < minimum) {
+    if (candidates.length < required) {
         if (playerKey === 'p1') {
-            showToast(`${card.name} precisa de pelo menos ${minimum} ${card.materialType}(s) como matéria.`, 'warning');
+            showToast(`${card.name} precisa de exatamente ${required} ${card.materialType}(s) como matéria.`, 'warning');
         }
         return false;
     }
@@ -268,11 +268,11 @@ function confirmFusionSummon() {
         return false;
     }
 
-    const minimum = getFusionMinimumMaterials(fusionCard);
+    const required = getFusionRequiredMaterials(fusionCard);
     const selected = pending.selectedMaterials || [];
 
-    if (selected.length < minimum) {
-        showToast(`Selecione pelo menos ${minimum} matérias.`, 'warning');
+    if (selected.length !== required) {
+        showToast(`Selecione exatamente ${required} matérias.`, 'warning');
         return false;
     }
 
