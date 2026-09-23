@@ -45,6 +45,36 @@ function closeGraveyardModal() {
     document.getElementById('gy-modal').style.display = 'none';
 }
 
+function openExtraDeckModal(playerKey) {
+    const modal = document.getElementById('extra-deck-modal');
+    const container = document.getElementById('extra-deck-modal-cards');
+    const title = document.getElementById('extra-deck-modal-title');
+
+    if (!modal || !container || !title) return;
+
+    const label = playerKey === 'p1' ? 'Seu Extra Deck' : 'Extra Deck do Inimigo';
+    const extraDeck = state.players[playerKey].extraDeck || [];
+
+    title.innerText = `${label} (${extraDeck.length})`;
+    container.innerHTML = '';
+
+    if (extraDeck.length === 0) {
+        container.innerHTML = '<span style="color:white; margin: 20px;">Vazio</span>';
+    } else {
+        [...extraDeck].reverse().forEach((card) => {
+            const realIndex = extraDeck.indexOf(card);
+            container.innerHTML += buildCardHTML(card, playerKey, 'extra-deck-view', realIndex);
+        });
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeExtraDeckModal() {
+    const modal = document.getElementById('extra-deck-modal');
+    if (modal) modal.style.display = 'none';
+}
+
 function openDiscardModal(index) {
     cardToDiscardIndex = index;
     const card = state.players.p1.hand[index];
@@ -482,7 +512,22 @@ function abrirSelecaoDeAlvoDoEfeito(carta, gatilho, owner, contexto) {
 
     if (!titulo || !container || !modal) return false;
 
-    titulo.innerText = `Escolha o alvo para: ${carta.name}`;
+    const restricao = typeof obterRestricaoDeAlvoDoEfeito === 'function'
+        ? obterRestricaoDeAlvoDoEfeito(carta)
+        : null;
+    const descricaoAlvo = restricao
+        ? (restricao.regra === 'enemy_card' ? 'Apenas cartas inimigas'
+            : restricao.regra === 'ally_other_card' ? 'Apenas outras cartas do seu campo'
+            : restricao.regra === 'ally_card' ? 'Apenas cartas do seu campo'
+            : restricao.regra === 'enemy_creature' ? 'Apenas criaturas inimigas'
+            : restricao.regra === 'ally_creature' ? 'Apenas criaturas do seu campo'
+            : restricao.regra === 'any_creature' ? 'Qualquer criatura'
+            : restricao.regra === 'any_card' ? 'Qualquer carta'
+            : 'Alvos compatíveis com a descrição')
+        : '';
+    titulo.innerText = descricaoAlvo
+        ? `Escolha o alvo para: ${carta.name} — ${descricaoAlvo}`
+        : `Escolha o alvo para: ${carta.name}`;
 
     const indicadorEnergia = document.getElementById('effect-target-energy');
     const jogador = state.players[owner];
@@ -509,22 +554,33 @@ function abrirSelecaoDeAlvoDoEfeito(carta, gatilho, owner, contexto) {
 
 function fecharSelecaoDeAlvoDoEfeito(cancelar = false) {
     const modal = document.getElementById('effect-target-modal');
-    if (modal) modal.style.display = 'none';
 
-    if (cancelar && efeitoPendente) {
-        const pendencia = efeitoPendente;
-        efeitoPendente = null;
+    if (modal) {
+        modal.style.display = 'none';
+    }
 
-        if (pendencia.carta.type === 'efeito') {
-            const jogador = state.players[pendencia.owner];
-            const indice = jogador?.field?.indexOf(pendencia.carta);
-            if (indice >= 0) jogador.field.splice(indice, 1);
-            sendCardToGraveyard(pendencia.carta, pendencia.owner, false);
-            registerActionDone(pendencia.owner);
-        } else if (pendencia.gatilho === 'custo') {
-            state.pendingCostActivation = null;
-            if (typeof renderUI === 'function') renderUI();
-        }
+    if (!cancelar || !efeitoPendente) {
+        return;
+    }
+
+    const pendencia = efeitoPendente;
+
+    // Cancela completamente a resolução pendente.
+    // A carta continua no campo e nenhum custo/ação é consumido.
+    efeitoPendente = null;
+
+    if (pendencia.gatilho === 'custo') {
+        state.pendingCostActivation = null;
+    }
+
+    // Limpa possíveis alvos temporários.
+    if (pendencia.carta) {
+        delete pendencia.carta._activeTarget;
+        delete pendencia.carta._activeTargetOwner;
+    }
+
+    if (typeof renderUI === 'function') {
+        renderUI();
     }
 }
 
@@ -536,6 +592,12 @@ function selecionarAlvoDoEfeito(ownerAlvo, indiceAlvo) {
     const alvo = jogadorAlvo?.field?.[indiceAlvo];
 
     if (!alvo) return;
+
+    if (typeof alvoValidoParaEfeito === 'function' &&
+        !alvoValidoParaEfeito(pendencia.carta, pendencia.owner, alvo, ownerAlvo)) {
+        showToast('Esta carta não pode ser escolhida como alvo deste efeito.', 'warning');
+        return;
+    }
 
     const contexto = {
         ...pendencia.contexto,
@@ -568,8 +630,8 @@ function selecionarAlvoDoEfeito(ownerAlvo, indiceAlvo) {
         pendencia.contexto.aoConcluir(true);
     } else if (carta.type === 'efeito') {
         const jogador = state.players[pendencia.owner];
-        const indice = jogador?.field?.indexOf(carta);
-        if (indice >= 0) jogador.field.splice(indice, 1);
+        const indice = jogador?.hand?.indexOf(carta);
+        if (indice >= 0) jogador.hand.splice(indice, 1);
         sendCardToGraveyard(carta, pendencia.owner, false);
         registerActionDone(pendencia.owner);
     }

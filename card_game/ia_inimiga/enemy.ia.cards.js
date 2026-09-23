@@ -113,13 +113,11 @@ function jogarCartaDoInimigo(indiceDaCarta) {
 
     const custo = obterCustoOriginalDaCarta(carta);
 
-    jogadorInimigo.hand.splice(indiceDaCarta, 1);
-
     if (carta.type === 'efeito') {
-        jogadorInimigo.energy -= custo;
-
-        triggerEffect(
-            'campo',
+        // A carta de efeito permanece na mão durante a resolução.
+        // A IA escolhe o alvo automaticamente dentro de triggerEffect().
+        const resultado = triggerEffect(
+            'efeito',
             carta,
             {
                 owner: 'p2',
@@ -127,15 +125,24 @@ function jogarCartaDoInimigo(indiceDaCarta) {
             }
         );
 
+        if (!resultado) {
+            return false;
+        }
+
+        jogadorInimigo.hand.splice(indiceDaCarta, 1);
+        jogadorInimigo.energy -= custo;
         sendCardToGraveyard(carta, 'p2', false);
 
         if (typeof showToast === 'function') {
             showToast(
-                `Inimigo usou a efeito ${carta.name}.`,
+                `Inimigo usou o efeito ${carta.name}.`,
                 'info'
             );
         }
-    } else if (faceDown) {
+    } else {
+        jogadorInimigo.hand.splice(indiceDaCarta, 1);
+
+        if (faceDown) {
         prepararCartaFaceDown(carta, jogadorInimigo);
         jogadorInimigo.field.push(carta);
 
@@ -180,6 +187,7 @@ function jogarCartaDoInimigo(indiceDaCarta) {
                 'info'
             );
         }
+    }
     }
 
     registerActionDone('p2');

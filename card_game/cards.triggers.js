@@ -1,5 +1,6 @@
 const GATILHOS_EFEITOS = Object.freeze([
     'campo',
+    'efeito',
     'destruido',
     'ativo',
     'custo'
@@ -33,6 +34,10 @@ function obterGatilhoDaCarta(carta) {
 
     if (descricao.includes('[campo]')) {
         return 'campo';
+    }
+
+    if (descricao.includes('[efeito]')) {
+        return 'efeito';
     }
 
     if (descricao.includes('[destruido]')) {
@@ -71,102 +76,51 @@ function obterGatilhoDaCarta(carta) {
 function efeitoPrecisaDeAlvo(carta) {
     if (!carta) return false;
 
-    const descricao =
-        normalizarDescricaoEfeito(carta.desc);
+    // A regra explícita da carta é a fonte principal de verdade.
+    if (carta.targetRule) {
+        return true;
+    }
 
-    /*
-     * Efeitos que mencionam explicitamente
-     * uma carta ou criatura como alvo.
-     */
-    const possuiExpressaoDeAlvo =
-        /\b(?:uma|outra)?\s*(?:carta|criatura)\b/.test(descricao);
+    // Compatibilidade com cartas antigas: analisa apenas a parte do
+    // efeito, ignorando requisitos de Fusão/Polimorfose/Especialidade.
+    const descricao = normalizarDescricaoEfeito(carta.desc)
+        .replace(/\[(?:fusao|polimorfose|especialidade)\][^[]*/g, ' ');
 
-    /*
-     * Efeitos que causam dano a uma carta/criatura.
-     */
-    const causaDanoEmCarta =
-        /causa\s+\d+\s+dano\s+a\s+(?:uma\s+)?(?:carta|criatura)/.test(
-            descricao
-        );
-
-    /*
-     * Efeitos que dão bônus para outra carta/criatura.
-     */
-    const concedeBonus =
-        /(?:outra\s+)?(?:carta|criatura).*\b(?:recebe|ganha)\b/.test(
-            descricao
-        );
-
-    /*
-     * Efeitos de atordoamento.
-     */
-    const atordoaCarta =
-        /\batordoa\b/.test(descricao) &&
-        /\b(?:carta|criatura)\b/.test(descricao);
-
-    return (
-        possuiExpressaoDeAlvo ||
-        causaDanoEmCarta ||
-        concedeBonus ||
-        atordoaCarta
-    );
+    return /\b(?:uma|outra)?\s*(?:carta|criatura)\b/.test(descricao) &&
+        /\b(?:recebe|ganha|causa|atordoa|destr[oó]i)\b/.test(descricao);
 }
 
-
-/*
- * Analisa exatamente QUEM pode ser escolhido.
- *
- * Resultado:
- *
- * {
- *     tipo: 'carta' | 'criatura',
- *     lado: 'aliado' | 'inimigo' | 'qualquer'
- * }
- */
 function obterRestricaoDeAlvoDoEfeito(carta) {
-    const descricao =
-        normalizarDescricaoEfeito(carta?.desc);
+    const regra = carta?.targetRule || null;
 
-    const eCriatura =
-        /\bcriatura\b/.test(descricao);
+    const mapa = {
+        enemy_card:      { tipo: 'carta',    lado: 'inimigo', outra: false },
+        ally_card:       { tipo: 'carta',    lado: 'aliado',  outra: false },
+        ally_other_card: { tipo: 'carta',    lado: 'aliado',  outra: true  },
+        enemy_creature:  { tipo: 'criatura', lado: 'inimigo', outra: false },
+        ally_creature:   { tipo: 'criatura', lado: 'aliado',  outra: false },
+        ally_other_creature: { tipo: 'criatura', lado: 'aliado', outra: true },
+        any_card:        { tipo: 'carta',    lado: 'qualquer', outra: false },
+        any_creature:    { tipo: 'criatura', lado: 'qualquer', outra: false }
+    };
 
-    const eCarta =
-        /\bcarta\b/.test(descricao);
-
-    let lado = 'qualquer';
-
-    /*
-     * Aliados.
-     */
-    if (
-        /carta\s+do\s+seu\s+campo/.test(descricao) ||
-        /criatura\s+do\s+seu\s+campo/.test(descricao) ||
-        /sua\s+carta/.test(descricao) ||
-        /sua\s+criatura/.test(descricao) ||
-        /carta\s+aliada/.test(descricao) ||
-        /criatura\s+aliada/.test(descricao)
-    ) {
-        lado = 'aliado';
+    if (regra && mapa[regra]) {
+        return { ...mapa[regra], regra };
     }
 
-    /*
-     * Inimigos.
-     */
-    else if (
-        /carta\s+inimiga/.test(descricao) ||
-        /criatura\s+inimiga/.test(descricao) ||
-        /carta\s+do\s+jogador\s+inimigo/.test(descricao) ||
-        /criatura\s+do\s+jogador\s+inimigo/.test(descricao)
-    ) {
+    // Compatibilidade para cartas que ainda não receberam targetRule.
+    const descricao = normalizarDescricaoEfeito(carta?.desc);
+    let lado = 'qualquer';
+    if (/carta\s+do\s+seu\s+campo|criatura\s+do\s+seu\s+campo|sua\s+carta|sua\s+criatura|carta\s+aliada|criatura\s+aliada/.test(descricao)) {
+        lado = 'aliado';
+    } else if (/carta\s+inimiga|criatura\s+inimiga|carta\s+do\s+jogador\s+inimigo|criatura\s+do\s+jogador\s+inimigo/.test(descricao)) {
         lado = 'inimigo';
     }
-
     return {
-        tipo: eCriatura && !eCarta
-            ? 'criatura'
-            : 'carta',
-
-        lado
+        tipo: /\bcriatura\b/.test(descricao) && !/\bcarta\b/.test(descricao) ? 'criatura' : 'carta',
+        lado,
+        outra: /\boutra\b/.test(descricao),
+        regra: null
     };
 }
 
@@ -175,6 +129,16 @@ function obterRestricaoDeAlvoDoEfeito(carta) {
  * Retorna todas as cartas que podem ser escolhidas
  * como alvo.
  */
+function alvoValidoParaEfeito(carta, owner, alvo, donoAlvo) {
+    if (!carta || !owner || !alvo || !donoAlvo) return false;
+
+    return obterAlvosValidosDoEfeito(carta, owner).some(
+        candidato =>
+            candidato.carta === alvo &&
+            candidato.owner === donoAlvo
+    );
+}
+
 function obterAlvosValidosDoEfeito(carta, owner) {
     if (!carta || !owner) {
         return [];
@@ -229,9 +193,7 @@ function obterAlvosValidosDoEfeito(carta, owner) {
              */
             if (
                 cartaDoCampo === carta &&
-                /\boutra\b/.test(
-                    normalizarDescricaoEfeito(carta.desc)
-                )
+                restricao.outra
             ) {
                 return;
             }

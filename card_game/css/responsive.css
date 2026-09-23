@@ -226,3 +226,112 @@
         line-height: 1;
     }
 }
+
+/* ==========================================================
+   CARTA AMPLIADA — RESPONSIVO
+   Mantém a mesma proporção e estrutura também na seleção.
+   ========================================================== */
+@media (max-width: 900px) and (orientation: landscape) {
+    .card {
+        width: 96px;
+        height: 144px;
+    }
+    .card-top-section {
+        height: 24px;
+        min-height: 24px;
+        font-size: 8px;
+        padding: 2px 22px 2px 4px;
+    }
+    .card-bottom-section {
+        height: 52px;
+        min-height: 52px;
+        padding: 3px;
+    }
+    .card-description {
+        font-size: 7px;
+        padding-right: 20px;
+        padding-bottom: 15px;
+    }
+    .card-stats-box {
+        font-size: 9px;
+        padding: 2px 4px;
+    }
+    .force-dot {
+        width: 11px;
+        height: 11px;
+        min-width: 11px;
+        left: 4px;
+        bottom: 4px;
+    }
+    .deck-builder-card-wrap {
+        min-width: 100px;
+        min-height: 225px;
+    }
+    .deck-builder-card-preview {
+        width: 96px;
+        height: 180px;
+        flex-basis: 180px;
+    }
+    .deck-builder-card-preview .card {
+        width: 96px;
+        height: 144px;
+    }
+    .deck-builder-controls {
+        width: 96px;
+    }
+    #deck-builder-cards {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+    }
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+    .card {
+        width: 88px;
+        height: 132px;
+    }
+    .card-top-section {
+        height: 22px;
+        min-height: 22px;
+        font-size: 7px;
+        padding: 2px 20px 2px 3px;
+    }
+    .card-bottom-section {
+        height: 46px;
+        min-height: 46px;
+    }
+    .card-description {
+        font-size: 6.5px;
+        padding-right: 18px;
+        padding-bottom: 13px;
+    }
+    .card-stats-box {
+        font-size: 8px;
+        padding: 1px 3px;
+    }
+    .force-dot {
+        width: 10px;
+        height: 10px;
+        min-width: 10px;
+        left: 3px;
+        bottom: 3px;
+    }
+    .deck-builder-card-wrap {
+        min-width: 92px;
+        min-height: 210px;
+    }
+    .deck-builder-card-preview {
+        width: 88px;
+        height: 166px;
+        flex-basis: 166px;
+    }
+    .deck-builder-card-preview .card {
+        width: 88px;
+        height: 132px;
+    }
+    .deck-builder-controls {
+        width: 88px;
+    }
+    #deck-builder-cards {
+        grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)) !important;
+    }
+}

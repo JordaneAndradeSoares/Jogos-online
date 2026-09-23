@@ -1,4 +1,17 @@
+
+function handleExtraDeckCardClick(owner, index) {
+    if (owner !== 'p1') return;
+    if (state.initiativeOwner !== 'p1' || state.activeAttack) return;
+    closeExtraDeckModal();
+    if (typeof prepareExtraDeckSummon === 'function') {
+        prepareExtraDeckSummon(owner, index);
+    }
+}
+
 function handleCardClick(owner, zone, index) {
+    // Cartas do oponente nunca iniciam ações pelo clique do jogador.
+    if (owner !== 'p1') return;
+
     if (state.pendingDiscard.p1) {
         if (owner === 'p1' && zone === 'hand') {
             openDiscardModal(index);
@@ -89,10 +102,10 @@ function handleCardClick(owner, zone, index) {
 
         if (
             carta.type !== 'efeito' &&
-            jogador.field.length >= 6
+            jogador.field.length >= 5
         ) {
             return showToast(
-                "Campo cheio (Máx 6)!",
+                "Campo cheio (Máx 5)!",
                 "error"
             );
         }
@@ -144,6 +157,28 @@ function handleCardClick(owner, zone, index) {
                     botaoImplantacaoAtiva.style.opacity = podePagarCusto ? '1' : '0.5';
                     botaoImplantacaoAtiva.style.cursor = podePagarCusto ? 'pointer' : 'not-allowed';
                     botaoImplantacaoAtiva.style.filter = podePagarCusto ? 'none' : 'grayscale(1)';
+                }
+
+                const botaoPolimorfose = document.getElementById('polymorph-summon-btn');
+                if (botaoPolimorfose) {
+                    const candidatos = carta.summonType === 'polimorfose'
+                        ? getPolymorphMaterialCandidates('p1', carta)
+                        : [];
+                    const custoPolimorfose = carta.summonType === 'polimorfose'
+                        ? getPolymorphCost(carta)
+                        : 0;
+                    const podePolimorfose =
+                        carta.summonType === 'polimorfose' &&
+                        state.initiativeOwner === 'p1' &&
+                        !state.activeAttack &&
+                        candidatos.length > 0 &&
+                        jogador.energy >= custoPolimorfose;
+
+                    botaoPolimorfose.style.display = carta.summonType === 'polimorfose' ? 'block' : 'none';
+                    botaoPolimorfose.disabled = !podePolimorfose;
+                    botaoPolimorfose.textContent = carta.summonType === 'polimorfose'
+                        ? `Invocar por Polimorfose (Custo ${custoPolimorfose})`
+                        : 'Invocar por Polimorfose';
                 }
 
                 if (titulo) {

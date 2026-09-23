@@ -92,6 +92,24 @@ function renderUI() {
         p2Gy.innerHTML = '<span style="font-size:10px; color:#636e72;">Vazio</span>';
     }
 
+    // Extra Deck: mostra a quantidade e a carta do topo.
+    // O Arquivo/Cemitério acima não é alterado.
+    const p1ExtraDeck = document.getElementById('p1-extra-deck');
+    if (p1ExtraDeck) {
+        const extraP1 = state.players.p1.extraDeck || [];
+        p1ExtraDeck.innerHTML = extraP1.length > 0
+            ? `<div style="font-size:10px; color:#cbd5e1;">${extraP1.length} carta(s)</div>`
+            : '<span style="font-size:10px; color:#636e72;">Vazio</span>';
+    }
+
+    const p2ExtraDeck = document.getElementById('p2-extra-deck');
+    if (p2ExtraDeck) {
+        const extraP2 = state.players.p2.extraDeck || [];
+        p2ExtraDeck.innerHTML = extraP2.length > 0
+            ? `<div style="font-size:10px; color:#cbd5e1;">${extraP2.length} carta(s)</div>`
+            : '<span style="font-size:10px; color:#636e72;">Vazio</span>';
+    }
+
     const p1Field = document.getElementById('p1-field');
     p1Field.innerHTML = '';
     state.players.p1.field.forEach((card, index) => {
@@ -133,7 +151,12 @@ Resumo RÁPIDO das regras:
 8. Criaturas e terrenos podem bloquear quando estiverem aptos.
 9. Criaturas e terrenos podem ser jogados para baixo. Cartas viradas para baixo custam 0, possuem —/1 e podem bloquear; ao bloquear, são reveladas se você quiser e pagar seu custo.
 10. Cartas que possuem ATK nulo (—), não atacam e não causam dano de combate.
-11. A DEF atual das cartas é restaurada ao valor original no início de cada novo ciclo de turno. Bônus e reduções permanentes de atributos permanecem na carta. Buffs permanecem na carta.
+11. Fusão: requer 2 ou mais cartas da mão ou do campo do tipo exigido e começa no Extra Deck.
+12. Polimorfose: requer 1 carta do campo do tipo exigido, começa no Deck Principal e pode ser invocada por 1 de custo a menos, nunca abaixo de 0; também pode ser jogada normalmente pelo custo original.
+13. Especialidade: começa no Extra Deck e só pode ser invocada quando a condição escrita na carta for cumprida.
+14. A carta de Fusão ou Polimorfose fica com suas matérias anexadas enquanto estiver no campo. Quando ela sair do campo, as matérias vão intactas para o Arquivo. Fusão e Especialidade retornam ao Extra Deck.
+15. Cada carta de Fusão, Polimorfose ou Especialidade paga seu próprio custo de invocação e gera sua própria energia ao entrar em campo.
+16. A DEF atual das cartas é restaurada ao valor original no início de cada novo ciclo de turno. Bônus e reduções permanentes de atributos permanecem na carta. Buffs permanecem na carta.
 12. ATK/DEF aumentados aparecem em verde; ATK/DEF reduzidos aparecem em vermelho.
 13. Reduza a vida inimiga a 0 para vencer.
 14. Se precisar comprar uma carta com o deck vazio, você perde.

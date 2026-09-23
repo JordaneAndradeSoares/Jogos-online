@@ -1,3 +1,14 @@
+
+function preparePolymorphSummonFromSelectedCard() {
+    const index = state.selectedCardIndex;
+    if (index === null || index === undefined) return;
+
+    const modal = document.getElementById('play-modal');
+    if (modal) modal.style.display = 'none';
+
+    preparePolymorphSummon('p1', index);
+}
+
 function confirmPlay(faceDown) {
     const indiceDaCarta = state.selectedCardIndex;
 
@@ -51,21 +62,31 @@ function confirmPlay(faceDown) {
         return;
     }
 
-    jogador.hand.splice(indiceDaCarta, 1);
-
     if (carta.type === 'efeito') {
-        jogador.energy -= custo;
-
+        // Efeitos são cartas de ação: não entram no campo.
+        // Permanecem na mão durante a seleção de alvo para que
+        // triggerEffect() reconheça corretamente o controlador.
         const finalizarUsoDoEfeito = () => {
-            const indiceNoCampo = jogador.field.indexOf(carta);
-            if (indiceNoCampo >= 0) jogador.field.splice(indiceNoCampo, 1);
+            const indiceNaMao = jogador.hand.indexOf(carta);
+
+            if (indiceNaMao >= 0) {
+                jogador.hand.splice(indiceNaMao, 1);
+            }
+
+            jogador.energy -= custo;
             sendCardToGraveyard(carta, 'p1', false);
-            showToast(`Você usou o efeito ${carta.name}!`, 'success');
+
+            showToast(
+                `Você usou o efeito ${carta.name}!`,
+                'success'
+            );
+
             registerActionDone('p1');
+            if (typeof renderUI === 'function') renderUI();
         };
 
         const resultado = triggerEffect(
-            'campo',
+            'efeito',
             carta,
             {
                 owner: 'p1',
@@ -74,13 +95,21 @@ function confirmPlay(faceDown) {
             }
         );
 
-        if (resultado !== 'pending') {
-            finalizarUsoDoEfeito();
+        if (resultado === 'pending') {
+            closeModal();
             return;
         }
 
+        if (resultado) {
+            finalizarUsoDoEfeito();
+        }
+
         return;
-    } else if (faceDown) {
+
+    } else {
+        jogador.hand.splice(indiceDaCarta, 1);
+
+        if (faceDown) {
         prepararCartaFaceDown(carta, jogador);
         jogador.field.push(carta);
 
@@ -127,6 +156,7 @@ function confirmPlay(faceDown) {
             `${carta.name} foi implantada virada para cima.`,
             'success'
         );
+    }
     }
 
     closeModal();

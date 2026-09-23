@@ -66,6 +66,18 @@ function triggerEffect(triggerType, card, context = {}) {
                 : 'p2'
         );
 
+    // Uma carta só pode ativar efeitos sob controle do jogador que
+    // a controla. Isso evita que uma referência de carta do adversário
+    // seja usada acidentalmente por uma ação do jogador atual.
+    const controlaCarta =
+        state.players[owner]?.field?.includes(card) ||
+        state.players[owner]?.hand?.includes(card);
+
+    if (!controlaCarta && !context.allowOffFieldEffect) {
+        console.warn('Tentativa de ativar efeito de carta fora do controle do jogador:', card?.name, owner);
+        return false;
+    }
+
     /*
      * Verifica se este efeito precisa de alvo.
      */
@@ -182,6 +194,31 @@ function triggerEffect(triggerType, card, context = {}) {
         }
     }
 
+
+    /*
+     * Segurança final: mesmo que alguém tente escolher um alvo manualmente,
+     * ele precisa obedecer à regra específica da carta.
+     */
+    if (context.targetCard) {
+        const alvoPermitido =
+            typeof alvoValidoParaEfeito === 'function'
+                ? alvoValidoParaEfeito(
+                    card,
+                    owner,
+                    context.targetCard,
+                    context.targetOwner
+                )
+                : true;
+
+        if (!alvoPermitido) {
+            console.warn(
+                'Alvo inválido para o efeito:',
+                card?.name,
+                context.targetCard?.name
+            );
+            return false;
+        }
+    }
 
     /*
      * Guarda o alvo dos efeitos ativos.

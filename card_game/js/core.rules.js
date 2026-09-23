@@ -63,7 +63,7 @@ function jogadorPodeJogarCarta(playerKey, carta, faceDown = false) {
 
     if (
         carta.type !== 'efeito' &&
-        jogador.field.length >= 6
+        jogador.field.length >= 5
     ) {
         return false;
     }

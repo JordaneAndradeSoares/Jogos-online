@@ -1,11 +1,39 @@
+const tamanhoMaximoDeck = 40;
+const tamanhoMaximoExtraDeck = 15;
+
+function isExtraDeckCard(card) {
+    return !!card && (card.summonType === 'fusao' || card.summonType === 'especialidade');
+}
+
 function generateRandomDeckNames() {
     const pool = [];
     if (typeof CARD_DATABASE === 'undefined' || !Array.isArray(CARD_DATABASE)) return [];
-    CARD_DATABASE.forEach(card => {
-        for (let i = 0; i < 3; i++) pool.push(card.name);
-    });
+    CARD_DATABASE
+        .filter(card => !isExtraDeckCard(card))
+        .forEach(card => {
+            for (let i = 0; i < 3; i++) pool.push(card.name);
+        });
     shuffleArray(pool);
     return pool.slice(0, 40);
+}
+
+function generateRandomExtraDeckNames() {
+    const pool = [];
+    if (typeof CARD_DATABASE === 'undefined' || !Array.isArray(CARD_DATABASE)) return [];
+    CARD_DATABASE
+        .filter(card => isExtraDeckCard(card))
+        .forEach(card => {
+            for (let i = 0; i < 3; i++) pool.push(card.name);
+        });
+    shuffleArray(pool);
+    return pool.slice(0, tamanhoMaximoExtraDeck);
+}
+
+function buildExtraDeckFromNames(names) {
+    return (names || []).map(name => {
+        const base = CARD_DATABASE.find(c => c.name === name);
+        return base ? createCard(base) : null;
+    }).filter(Boolean);
 }
 
 function buildDeckFromNames(names) {
@@ -19,19 +47,29 @@ function generateLegalDeck() {
     return generateRandomDeckNames();
 }
 
-function initGame(playerDeckNames, enemyDeckNames) {
+function initGame(playerDeckNames, enemyDeckNames, playerExtraDeckNames = [], enemyExtraDeckNames = []) {
     // Sem decks escolhidos, não inicia uma partida automaticamente.
     // A tela de montagem de deck é responsável por chamar initGame com 40 cartas.
-    if (!Array.isArray(playerDeckNames) || playerDeckNames.length !== 40) {
+    if (!Array.isArray(playerDeckNames) || playerDeckNames.length !== tamanhoMaximoDeck) {
         return false;
     }
-    if (!Array.isArray(enemyDeckNames) || enemyDeckNames.length !== 40) {
+    if (!Array.isArray(enemyDeckNames) || enemyDeckNames.length !== tamanhoMaximoDeck) {
         enemyDeckNames = generateRandomDeckNames();
+    }
+    if (!Array.isArray(playerExtraDeckNames) || playerExtraDeckNames.length > tamanhoMaximoExtraDeck) {
+        return false;
+    }
+    if (!Array.isArray(enemyExtraDeckNames) || enemyExtraDeckNames.length > tamanhoMaximoExtraDeck) {
+        enemyExtraDeckNames = generateRandomExtraDeckNames();
     }
 
     state.savedDecks = {
         p1: [...playerDeckNames],
         p2: [...enemyDeckNames]
+    };
+    state.savedExtraDecks = {
+        p1: [...playerExtraDeckNames],
+        p2: [...enemyExtraDeckNames]
     };
 
     state.turn = 1;
@@ -41,17 +79,27 @@ function initGame(playerDeckNames, enemyDeckNames) {
     state.selectedCardIndex = null;
     state.activeAttack = null;
     state.pendingCostActivation = null;
+    state.pendingExtraDeckSummon = null;
+    state.pendingPolymorphSummon = null;
     state.pendingDiscard = { p1: false, p2: false };
 
     state.players.p1 = {
         life: 20, energy: 0, maxEnergy: 20,
-        deck: buildDeckFromNames(playerDeckNames), hand: [], field: [], gy: []
+        deck: buildDeckFromNames(playerDeckNames), hand: [], field: [], gy: [], extraDeck: buildExtraDeckFromNames(playerExtraDeckNames)
     };
 
     state.players.p2 = {
         life: 20, energy: 0, maxEnergy: 20,
-        deck: buildDeckFromNames(enemyDeckNames), hand: [], field: [], gy: []
+        deck: buildDeckFromNames(enemyDeckNames), hand: [], field: [], gy: [], extraDeck: buildExtraDeckFromNames(enemyExtraDeckNames)
     };
+
+    // As cartas do Extra Deck do inimigo começam ocultas.
+    // Quando uma Fusão/Especialidade retornar ao Extra Deck,
+    // returnExtraDeckCardToExtraDeck() chama resetSummonCardState(),
+    // que deixa a carta novamente virada para cima.
+    state.players.p2.extraDeck.forEach(card => {
+        card.isFaceDown = true;
+    });
 
     shuffleArray(state.players.p1.deck);
     shuffleArray(state.players.p2.deck);
@@ -69,14 +117,34 @@ function initGame(playerDeckNames, enemyDeckNames) {
 }
 
 function restartGameSameDeck() {
-    if (!state.savedDecks || state.savedDecks.p1.length !== 40 || state.savedDecks.p2.length !== 40) return;
+    if (!state.savedDecks || state.savedDecks.p1.length !== tamanhoMaximoDeck || state.savedDecks.p2.length !== tamanhoMaximoDeck) return;
     closeAllGameModals?.();
-    initGame([...state.savedDecks.p1], [...state.savedDecks.p2]);
+    initGame(
+        [...state.savedDecks.p1],
+        [...state.savedDecks.p2],
+        [...(state.savedExtraDecks?.p1 || [])],
+        [...(state.savedExtraDecks?.p2 || [])]
+    );
     showToast?.('Partida reiniciada com os mesmos decks.', 'success');
 }
 
-function sendCardToGraveyard(card, playerKey, isDestroyed = false) {
+function sendCardToGraveyard(card, playerKey, isDestroyed = false, options = {}) {
     if (!card || !state.players[playerKey]) return;
+
+    // Fusão e Especialidade retornam ao Extra Deck.
+    // As matérias anexadas a elas vão intactas para o Arquivo.
+    if (!options.forceGraveyard && typeof returnExtraDeckCardToExtraDeck === 'function' && isSummonFromExtraDeck(card)) {
+        returnExtraDeckCardToExtraDeck(card, playerKey);
+        return;
+    }
+
+    // Polimorfose permanece no Deck Principal, mas sua matéria não:
+    // quando a carta deixa o campo, a matéria anexada vai para o Arquivo.
+    if (typeof isPolymorphCard === 'function' && isPolymorphCard(card) && Array.isArray(card.materials) && card.materials.length) {
+        const materials = [...card.materials];
+        card.materials = [];
+        materials.forEach(material => sendCardToGraveyard(material, playerKey, false, { forceGraveyard: true }));
+    }
 
     if (typeof removerEfeitosAtivosDaCarta === 'function') {
         removerEfeitosAtivosDaCarta(card);

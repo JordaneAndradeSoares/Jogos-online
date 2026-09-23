@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-    <div id="rotate-device">🔄 Gire o celular para a horizontal para jogar.</div>
+    <div id="rotate-device">Gire o celular para a horizontal para jogar.</div>
 
     <!-- Container para notificações -->
     <div id="toast-container"></div>
@@ -89,10 +89,14 @@
                     <div style="font-size: 12px; color: #b2bec3; margin-bottom: 5px;">CAMPO DE BATALHA INIMIGO</div>
                     <div class="zones-container">
                         <div class="gy-zone" onclick="openGraveyardModal('p2')" title="Clique para ver o cemitério">
-                            <div style="font-size: 11px; margin-bottom: 5px;">ARQUIVO P2</div>
+                            <div style="font-size: 11px; margin-bottom: 5px;">CEMITERIO P2</div>
                             <div id="p2-gy"></div>
                         </div>
                         <div class="field-zone" id="p2-field"></div>
+                        <div class="gy-zone" onclick="openExtraDeckModal('p2')" title="Clique para ver o Extra Deck P2">
+                            <div style="font-size: 11px; margin-bottom: 5px;">EXTRA DECK P2</div>
+                            <div id="p2-extra-deck" class="extra-deck-inner"><span style="font-size:10px; color:#636e72;">Vazio</span></div>
+                        </div>
                     </div>
                 </div>
 
@@ -101,10 +105,14 @@
                     <div style="font-size: 12px; color: #b2bec3; margin-bottom: 5px;">SEU CAMPO DE BATALHA</div>
                     <div class="zones-container">
                         <div class="gy-zone" onclick="openGraveyardModal('p1')" title="Clique para ver o cemitério">
-                            <div style="font-size: 11px; margin-bottom: 5px;">ARQUIVO P1</div>
+                            <div style="font-size: 11px; margin-bottom: 5px;">CEMITERIO P1</div>
                             <div id="p1-gy"></div>
                         </div>
                         <div class="field-zone" id="p1-field"></div>
+                        <div class="gy-zone" onclick="openExtraDeckModal('p1')" title="Clique para ver o Extra Deck P1">
+                            <div style="font-size: 11px; margin-bottom: 5px;">EXTRA DECK P1</div>
+                            <div id="p1-extra-deck" class="extra-deck-inner"><span style="font-size:10px; color:#636e72;">Vazio</span></div>
+                        </div>
                     </div>
                     <div style="font-size: 12px; color: #b2bec3; margin-top: 5px;">SUA RESERVA</div>
                     <div class="hand-zone" id="p1-hand"></div>
@@ -116,11 +124,11 @@
 <div id="deck-builder" style="position:fixed;inset:0;z-index:1000;background:#111827;color:white;overflow:auto;padding:25px;box-sizing:border-box;display:block;">
   <div style="max-width:1100px;margin:0 auto;">
     <h2>Monte seu deck</h2>
-    <p>Escolha exatamente <b>40 cartas</b>. Você pode usar no máximo <b>3 cópias</b> de cada carta.</p>
+    <p id="deck-builder-rules-text"></p>
     <div style="display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:15px;">
-      <button class="action-btn" onclick="randomizePlayerDeck()">Escolher 40 aleatoriamente</button>
+      <button id="randomize-player-deck-btn" class="action-btn" onclick="randomizePlayerDeck()"></button>
       <button id="start-game-btn" class="action-btn" onclick="startGameFromBuilder()" disabled>Começar a partida</button>
-      <span id="deck-builder-count">0 / 40</span>
+      <span id="deck-builder-count">0 / 0</span><span id="extra-deck-builder-count">0 / 0</span>
     </div>
     <div id="deck-builder-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:14px 10px;justify-items:center;"></div>
 
@@ -137,6 +145,7 @@
     <div class="modal" id="play-modal">
         <h3 style="color:white;">Como deseja implantar esta carta?</h3>
         <div class="modal-content">
+            <button id="polymorph-summon-btn" class="action-btn" onclick="preparePolymorphSummonFromSelectedCard()" style="display:none;">Invocar por Polimorfose</button>
             <button class="action-btn" onclick="confirmPlay(false)">Implantar Ativa (Pagar Custo)</button>
             <button class="action-btn" onclick="confirmPlay(true)">Implantar Oculta (Criatura/Terreno • Custo 0, nulo/1)</button>
             <button class="action-btn" style="background: #d63031;" onclick="closeModal()">Cancelar</button>
@@ -165,6 +174,25 @@
         <h3 style="color:white; margin-bottom: 10px;" id="gy-modal-title">Arquivo de Unidades</h3>
         <div class="gy-modal-content" id="gy-modal-cards"></div>
         <button class="action-btn" style="margin-top: 15px; background: #636e72;" onclick="closeGraveyardModal()">Fechar</button>
+    </div>
+    <div class="modal" id="fusion-material-modal">
+        <h3 style="color:white; margin-bottom:10px;" id="fusion-material-modal-title">Escolha as matérias</h3>
+        <div id="fusion-material-options" class="gy-modal-content"></div>
+        <button id="confirm-fusion-btn" class="action-btn" style="margin-top:15px;" onclick="confirmFusionSummon()" disabled>Invocar Fusão</button>
+        <button class="action-btn" style="margin-top:8px;background:#636e72;" onclick="closeFusionMaterialModal(true)">Cancelar</button>
+    </div>
+
+    <div class="modal" id="polymorph-material-modal">
+        <h3 style="color:white; margin-bottom:10px;" id="polymorph-material-modal-title">Escolha 1 matéria</h3>
+        <div id="polymorph-material-options" class="gy-modal-content"></div>
+        <button id="confirm-polymorph-btn" class="action-btn" style="margin-top:15px;" onclick="confirmPolymorphSummon()" disabled>Invocar por Polimorfose</button>
+        <button class="action-btn" style="margin-top:8px;background:#636e72;" onclick="closePolymorphMaterialModal(true)">Cancelar</button>
+    </div>
+
+    <div class="modal" id="extra-deck-modal">
+        <h3 style="color:white; margin-bottom: 10px;" id="extra-deck-modal-title">Extra Deck</h3>
+        <div class="gy-modal-content" id="extra-deck-modal-cards"></div>
+        <button class="action-btn extra-deck-close-btn" style="margin-top: 15px; background: #636e72;" onclick="closeExtraDeckModal()">Fechar</button>
     </div>
 
     <div class="modal" id="effect-target-modal">
@@ -207,6 +235,7 @@
     <script src="js/core.state.js"></script>
     <script src="js/core.cards.js"></script>
     <script src="js/core.rules.js"></script>
+    <script src="js/core.summoning.js"></script>
     <script src="js/core.turns.js"></script>
 
     <!-- IA inimiga -->
@@ -218,6 +247,7 @@
 
     <!-- Interface -->
     <script src="js/ui.modals.js"></script>
+    <script src="js/ui.summoning.js"></script>
     <script src="js/ui.cards.js"></script>
     <script src="js/ui.combat.js"></script>
     <script src="js/ui.face-down.js"></script>

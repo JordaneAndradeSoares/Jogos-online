@@ -7,6 +7,9 @@ let state = {
     activeAttack: null,
     pendingCostActivation: null,
     pendingDiscard: { p1: false, p2: false },
+    savedExtraDecks: { p1: [], p2: [] },
+    pendingExtraDeckSummon: null,
+    pendingPolymorphSummon: null,
     tempoLimiteAcao: 60,
     tempoRestanteAcao: 60,
     prazoAcao: null,
@@ -14,7 +17,7 @@ let state = {
     jogoPausado: false,
     tempoRestanteAntesDaPausa: 60,
     tutorialPausouJogo: false,
-    players: { p1: { life: 20, energy: 0, maxEnergy: 20, deck: [], hand: [], field: [], gy: [] }, p2: { life: 20, energy: 0, maxEnergy: 20, deck: [], hand: [], field: [], gy: [] } }
+    players: { p1: { life: 20, energy: 0, maxEnergy: 20, deck: [], hand: [], field: [], gy: [], extraDeck: [] }, p2: { life: 20, energy: 0, maxEnergy: 20, deck: [], hand: [], field: [], gy: [], extraDeck: [] } }
 };
 
 function shuffleArray(array) {
