@@ -49,7 +49,7 @@ function renderDeckBuilder() {
     const extraDescription = document.getElementById('deck-builder-extra-description');
 
     if (mainDescription) {
-        mainDescription.textContent = `${tamanhoMaximoDeck} cartas no máximo e no máximo 3 cópias de cada carta.`;
+        mainDescription.textContent = `${tamanhoMaximoDeck} cartas e no máximo 3 cópias de cada carta.`;
     }
 
     if (extraDescription) {
