@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Othello Game</title>
+    <meta name="description" content="TO COMPLETE">
+    <meta name="keywords" content="TO COMPLETE">
+    <link rel="icon" type="image/x-icon" href="./assets/images/favicon.ico">
+
+    <link rel="stylesheet" href="./styles.css">
+
+    <!-- Preloading scripts to improve performance. -->
+    <link rel="preload" href="./behavior.js" as="script">
+
+    <!-- Defer scripts to load them after the DOM has been fully parsed. -->
+    <script src="./behavior.js" defer></script>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header>
+        <!-- Othello Game logo -->
+        <div id="logo_container">
+            <img src="./assets/images/logo-othello_game.png" alt="Othello Game logo">
+
+            <a href="./index.html">
+                <h1>Othello</h1>
+            </a>
+        </div>
+
+        <nav>
+            <!-- Informations menu -->
+            <ul id="informations_menu_container">
+                <li>
+                    REGRAS
+                </li>
+            </ul>
+
+            <span>|</span>
+
+            <!-- Game mode menu -->
+            <div id="game_mode_menu_container">
+                <label class="game_mode_button" for="single_player">
+                    <input id="single_player" type="radio" name="game_mode_button">
+                    <span>Solo</span>
+                </label>
+
+                <label class="game_mode_button" for="local_multiplayer">
+                    <input id="local_multiplayer" type="radio" name="game_mode_button">
+                    <span>PvP local</span>
+                </label>
+
+                <label class="game_mode_button" for="online_multiplayer">
+                    <input id="online_multiplayer" type="radio" name="game_mode_button" disabled>
+                    <span class="disabled_button">PvP online</span>
+                </label>
+            </div>
+
+            <span>|</span>
+
+            <!-- Restart button -->
+            <button id="restart_button"
+                onclick="if (confirm('Restart?')) { restartGame(); }">
+                <img src="./assets/images/icon-restart.png" alt="Restart icon">
+            </button>
+        </nav>
+
+        <!-- Hamburger button -->
+        <div id="hamburger_icon">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+    </header>
+
+    <!---------- MAIN ---------->
+    <main style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 20px;">
+        <h3>
+            REGRAS
+        </h3>
+
+        <table>
+            O objetivo do jogo e ter a maioria dos discos da sua cor virados para cima no fim da partida. Cada jogador recebe 32 discos de uma cor. No inicio, quatro discos sao colocados no centro do tabuleiro em forma de X, sendo dois pretos e dois brancos. O preto sempre comeca jogando. Flanquear significa colocar um disco de forma que uma ou mais linhas de discos do oponente fiquem limitadas nas extremidades por discos da sua cor. Se um jogador puder fazer um lance valido, ele e obrigado a jogar; se nao houver movimentos validos, ele passa a vez e o oponente joga novamente. Um disco colocado pode flanquear pecas em varias direcoes ao mesmo tempo, sejam linhas horizontais, verticais ou diagonais. Nao e permitido pular pecas da sua propria cor para flanquear o oponente. Todas as pecas flanqueadas devem ser viradas obrigatoriamente. Uma vez que um disco e colocado em uma casa, ele nao pode ser movido para outro lugar durante o jogo. A partida termina quando nenhum dos jogadores puder fazer novos movimentos, mesmo que ainda existam casas vazias no tabuleiro, e vence quem tiver mais discos da sua cor.
+        </table>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>A minute to learn... A lifetime to master!</p>
+    </footer>
+</body>
+
+</html>

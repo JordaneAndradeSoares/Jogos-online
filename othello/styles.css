@@ -1,0 +1,412 @@
+/********** VARIABLES **********/
+:root {
+    --header_height: 5rem;
+    --footer_height: 3.5rem;
+    --small-gap: 1rem;
+    --normal-gap: 2rem;
+    --black: #000000;
+    --white: #ffffff;
+    --lightgray: #dadada;
+    --green: #008a61;
+    --gold: #ffd700;
+    --background_color: #f0f0f0;
+}
+
+/********** RESET CSS **********/
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: monospace;
+    font-size: 1em;
+    list-style: none;
+    text-decoration: none;
+    scroll-behavior: smooth;
+}
+
+/********** GENERAL **********/
+body {
+    width: 100%;
+    height: 100dvh;
+    background-color: var(--black);
+}
+
+main {
+    width: 100%;
+    height: calc(100% - var(--header_height) - var(--footer_height));
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: var(--background_color);
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/********** HEADER **********/
+header {
+    width: 100%;
+    height: var(--header_height);
+    padding: 0 2rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--white);
+    background-color: var(--black);
+}
+
+nav {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: var(--small-gap);
+    z-index: 999;
+}
+
+/* Othello Game logo  */
+#logo_container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: var(--normal-gap);
+}
+
+#logo_container img {
+    width: 25px;
+    height: 25px;
+}
+
+#logo_container a {
+    text-decoration: none;
+    color: var(--white);
+}
+
+/* Informations menu */
+#informations_menu_container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: var(--small-gap);
+}
+
+#informations_menu_container li a {
+    text-transform: uppercase;
+    color: var(--white);
+}
+
+/* Game mode menu */
+#game_mode_menu_container {
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    border-radius: 2rem;
+    background-color: var(--white);
+}
+
+#game_mode_menu_container .game_mode_button input {
+    display: none;
+}
+
+#game_mode_menu_container .game_mode_button span {
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    border-radius: 2rem;
+    text-transform: uppercase;
+    color: var(--black);
+    cursor: pointer;
+}
+
+#game_mode_menu_container .game_mode_button span.disabled_button {
+    color: var(--lightgray);
+    cursor: not-allowed;
+}
+
+#game_mode_menu_container .game_mode_button input:checked+span {
+    font-weight: 800;
+    color: var(--white);
+    background-color: var(--black);
+}
+
+/* Restart button */
+#restart_button {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    transition: all 0.1s ease-in-out;
+}
+
+#restart_button img {
+    height: 2rem;
+}
+
+#restart_button:hover {
+    transform: scale(1.1);
+}
+
+/* Hamburger button */
+#hamburger_icon {
+    position: relative;
+    width: 25px;
+    height: 25px;
+    display: none;
+    cursor: pointer;
+    z-index: 9999;
+}
+
+.bar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    border-radius: 2.5px;
+    background-color: var(--white);
+    transform: translate(-50%, -50%);
+}
+
+#hamburger_icon .bar:nth-last-child(1) {
+    top: 25%;
+}
+
+#hamburger_icon .bar:nth-last-child(3) {
+    top: 75%;
+}
+
+/* Hamburger button animation */
+#hamburger_icon.active .bar:nth-last-child(1) {
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+#hamburger_icon.active .bar:nth-last-child(2) {
+    opacity: 0;
+}
+
+#hamburger_icon.active .bar:nth-last-child(3) {
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/********** OTHELLO GAME **********/
+/* Game board */
+#othello_game_board_border {
+    border: 15px solid var(--black);
+    border-radius: 10px;
+    box-shadow: 25px 25px 35px 0 rgba(0, 0, 0, 0.5);
+}
+
+#othello_game_container {
+    position: relative;
+}
+
+#othello_game_container::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    box-shadow: inset 0 0 25px 0 rgba(0, 0, 0, 1);
+    pointer-events: none;
+}
+
+#game_board_layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--black);
+}
+
+/* Discs */
+.disc {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    box-shadow: 2.5px 2.5px 5px rgba(0, 0, 0, 0.5);
+}
+
+.disc.black {
+    border: 0.5px solid #3c3c3c;
+    background: radial-gradient(circle at 30% 30%, #333333, var(--black) 70%);
+}
+
+.disc.white {
+    border: 1px solid #c9c9c9;
+    background: radial-gradient(circle at 30% 30%, var(--white), #cccccc 70%);
+}
+
+.highlighted_disc {
+    outline: 2px solid var(--gold);
+}
+
+/* Scores */
+.score_container {
+    width: 175px;
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--normal-gap);
+    text-transform: uppercase;
+    /* border: 1px solid var(--lightgray);
+    border-radius: 2rem; */
+}
+
+.score {
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+/********** FOOTER **********/
+footer {
+    width: 100%;
+    height: var(--footer_height);
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    color: var(--white);
+    background-color: var(--black);
+}
+
+/********** RESPONSIVE DESIGN **********/
+/* Extra large */
+@media (max-width: 1200px) {
+    #hamburger_icon {
+        display: block;
+    }
+
+    nav {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+        gap: 50px;
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        transition: all 0.3s ease-in-out;
+    }
+
+    nav.active {
+        left: 0px;
+    }
+
+    nav span {
+        display: none;
+    }
+
+    #informations_menu_container {
+        gap: 50px;
+        font-size: 2rem;
+        flex-direction: column;
+    }
+
+    #game_mode_menu_container {
+        width: 100%;
+        gap: 25px;
+        font-size: 2rem;
+        border-radius: 0;
+        flex-direction: column;
+    }
+
+    #restart_button img {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* Large */
+@media (max-width: 992px) {
+    #othello_game_board_border {
+        border: 13px solid var(--black);
+        border-radius: 9px;
+        box-shadow: 23px 23px 33px 0 rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* Medium */
+@media (max-width: 768px) {
+    main {
+        flex-direction: column;
+    }
+
+    #othello_game_board_border {
+        border: 12px solid var(--black);
+        border-radius: 8px;
+        box-shadow: 21px 21px 30px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .score_container {
+        flex-direction: row;
+        transform: scale(0.8);
+    }
+}
+
+/* Small */
+@media (max-width: 576px) {
+    #othello_game_board_border {
+        border: 7px solid var(--black);
+        border-radius: 6px;
+        box-shadow: 15px 15px 22px 0 rgba(0, 0, 0, 0.5);
+    }
+
+}
+
+/* Horizontal screen */
+@media (max-height: 400px) {
+    main {
+        flex-direction: row;
+    }
+
+    nav {
+        gap: 5px;
+    }
+
+    #informations_menu_container {
+        gap: 5px;
+        font-size: 1.5rem;
+    }
+
+    #game_mode_menu_container {
+        gap: 5px;
+        font-size: 1.5rem;
+    }
+
+    #othello_game_board_border {
+        border: 5.5px solid var(--black);
+        border-radius: 4px;
+        box-shadow: 10px 10px 14px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .score_container {
+        transform: scale(0.8);
+    }
+}

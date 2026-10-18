@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Othello Game</title>
+    <meta name="description" content="TO COMPLETE">
+    <meta name="keywords" content="TO COMPLETE">
+    <link rel="icon" type="image/x-icon" href="./assets/images/favicon.ico">
+
+    <link rel="stylesheet" href="./styles.css">
+
+    <!-- Preloading scripts to improve performance. -->
+    <link rel="preload" href="./behavior.js" as="script">
+    <link rel="preload" href="./othello_game.js" as="script">
+    <link rel="preload" href="./othello_ai.js" as="script">
+
+    <!-- Defer scripts to load them after the DOM has been fully parsed. -->
+    <script src="./behavior.js" defer></script>
+    <script src="./othello_game.js" defer></script>
+    <script src="./othello_ai.js" defer></script>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header>
+        <!-- Othello Game logo -->
+        <div id="logo_container">
+            <img src="./assets/images/logo-othello_game.png" alt="Othello Game logo">
+
+            <a href="./index.html">
+                <h1>Othello</h1>
+            </a>
+        </div>
+
+        <nav>
+            <!-- Informations menu -->
+            <ul id="informations_menu_container">
+                <li>
+                    <a href="./rules.html">
+                        REGRAS
+                    </a>
+                </li>
+            </ul>
+
+            <span>|</span>
+
+            <!-- Game mode menu -->
+            <div id="game_mode_menu_container">
+                <label class="game_mode_button" for="single_player">
+                    <input id="single_player" type="radio" name="game_mode_button">
+                    <span>Solo</span>
+                </label>
+
+                <label class="game_mode_button" for="local_multiplayer">
+                    <input id="local_multiplayer" type="radio" name="game_mode_button">
+                    <span>PvP local</span>
+                </label>
+
+                <label class="game_mode_button" for="online_multiplayer">
+                    <input id="online_multiplayer" type="radio" name="game_mode_button" disabled>
+                    <span class="disabled_button">PvP online</span>
+                </label>
+            </div>
+
+            <span>|</span>
+
+            <!-- Restart button -->
+            <button id="restart_button"
+                onclick="if (confirm('Restart?')) { restartGame(); }">
+                <img src="./assets/images/icon-restart.png" alt="Restart icon">
+            </button>
+        </nav>
+
+        <!-- Hamburger button -->
+        <div id="hamburger_icon">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+    </header>
+
+    <!---------- MAIN ---------->
+    <main>
+        <!-- Black score -->
+        <div class="score_container">
+            <p id="black_score" class="score">0</p>
+            <div class="disc black"></div>
+        </div>
+
+        <!-- Othello game -->
+        <div id="othello_game_board_border">
+            <div id="othello_game_container">
+                <div id="game_board_layer"></div>
+                <div id="discs_layer"></div>
+                <div id="valid_move_layer"></div>
+            </div>
+        </div>
+
+        <!-- White score -->
+        <div class="score_container">
+            <p id="white_score" class="score">0</p>
+            <div class="disc white"></div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>A minute to learn... A lifetime to master!</p>
+    </footer>
+</body>
+
+</html>
