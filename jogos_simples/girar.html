@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Textos, Links e Imagens Giratórios</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 40px 20px;
+            background-color: orange;
+        }
+
+        /* Organização das três linhas */
+        .linha {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 40px;
+            padding: 30px 10px;
+            border-bottom: 1px solid yellow;
+        }
+
+        .linha h2 {
+            width: 100%;
+            margin: 0;
+        }
+
+        /* Textos */
+        .texto2D {
+            display: inline-block;
+            animation: girar2D 3s linear infinite;
+        }
+
+        .texto3D {
+            display: inline-block;
+            animation: girar3D 3s linear infinite;
+        }
+
+        /* Links */
+        .link2D {
+            display: inline-block;
+            animation: girar2D 3s linear infinite;
+        }
+
+        .link3D {
+            display: inline-block;
+            animation: girar3D 3s linear infinite;
+        }
+
+        /* Imagens */
+        .imagem2D,
+        .imagem3D {
+            max-width: 300px;
+            max-height: 300px;
+            margin-top: 20px;
+        }
+
+        .imagem2D {
+            animation: girar2D 3s linear infinite;
+        }
+
+        .imagem3D {
+            animation: girar3D 3s linear infinite;
+        }
+
+        .perspectiva {
+            perspective: 800px;
+            display: inline-block;
+        }
+
+        @keyframes girar2D {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes girar3D {
+            from {
+                transform: rotateY(0deg);
+            }
+
+            to {
+                transform: rotateY(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Primeira linha: textos -->
+    <section class="linha">
+        <h2>Textos girando</h2>
+
+        <p class="texto2D">Este texto gira em 2D!</p>
+
+        <div class="perspectiva">
+            <p class="texto3D">Este texto gira em 3D!</p>
+        </div>
+    </section>
+
+    <!-- Segunda linha: links -->
+    <section class="linha">
+        <h2>Links girando</h2>
+
+        <a href="https://jordaneandradesoares.github.io/HTML5-e-CSS3/"
+           class="link2D">
+            Acesse o link em 2D
+        </a>
+
+        <div class="perspectiva">
+            <a href="https://jordaneandradesoares.github.io/HTML5-e-CSS3/"
+               class="link3D">
+                Acesse o link em 3D
+            </a>
+        </div>
+    </section>
+
+    <div>
+        <p>Enviar uma imagem</p>
+        <input type="file" id="imagem" accept="image/*">
+    </div>
+
+    <!-- Terceira linha: imagens -->
+    <section class="linha">
+        <h2>Imagens girando</h2>
+
+        <div>
+            <p>Imagem em 2D</p>
+            <div id="resultado2D"></div>
+        </div>
+
+        <div class="perspectiva">
+            <p>Imagem em 3D</p>
+            <div id="resultado3D"></div>
+        </div>
+
+    </section>
+
+    <script>
+        const arquivo = document.getElementById("imagem");
+        const resultado2D = document.getElementById("resultado2D");
+        const resultado3D = document.getElementById("resultado3D");
+
+        arquivo.addEventListener("change", function() {
+            const imagemSelecionada = arquivo.files[0];
+
+            if (!imagemSelecionada) {
+                return;
+            }
+
+            if (!imagemSelecionada.type.startsWith("image/")) {
+                alert("Selecione um arquivo de imagem.");
+                return;
+            }
+
+            const leitor = new FileReader();
+
+            leitor.onload = function(evento) {
+                resultado2D.innerHTML = "";
+                resultado3D.innerHTML = "";
+
+                // Imagem girando em 2D
+                const imagem2D = document.createElement("img");
+                imagem2D.src = evento.target.result;
+                imagem2D.alt = "Imagem girando em 2D";
+                imagem2D.className = "imagem2D";
+                resultado2D.appendChild(imagem2D);
+
+                // Imagem girando em 3D
+                const imagem3D = document.createElement("img");
+                imagem3D.src = evento.target.result;
+                imagem3D.alt = "Imagem girando em 3D";
+                imagem3D.className = "imagem3D";
+                resultado3D.appendChild(imagem3D);
+            };
+
+            leitor.readAsDataURL(imagemSelecionada);
+        });
+    </script>
+
+</body>
+</html>
