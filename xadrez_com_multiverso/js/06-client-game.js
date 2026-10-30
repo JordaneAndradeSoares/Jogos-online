@@ -638,7 +638,10 @@ class ClientPlayer extends Player {
 	init() {
 		super.init()
 		this.el = document.createElement("chess-sidebar-player");
-		this.el.setAttribute("side", this.side ? "white" : "black");
+		// A cor visual deve depender do lado real do jogo, nunca do nome do jogador.
+		const playerColor = this.side === 1 ? "white" : "black";
+		this.el.setAttribute("side", playerColor);
+		this.el.dataset.playerColor = playerColor;
 		this.avatarEl = document.createElement("chess-sidebar-player-picture");
 		const imgEl = document.createElement("img");
 		if (this.game.options.players[this.side].avatar)

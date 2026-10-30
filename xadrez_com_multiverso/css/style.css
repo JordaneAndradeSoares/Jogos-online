@@ -840,9 +840,17 @@ chess-sidebar-player-picture > img {
 	outline: none;
 }
 
-chess-sidebar-player[side="white"] chess-sidebar-player-picture {
-	border-color: var(--white-dark);
-	background-color: var(--white-dark);
+/* Mantém a cor correta das bolas mesmo depois do encerramento da partida. */
+chess-sidebar-player[side="white"] > chess-sidebar-player-picture,
+chess-sidebar-player[data-player-color="white"] > chess-sidebar-player-picture {
+	border-color: #fff !important;
+	background-color: #fff !important;
+}
+
+chess-sidebar-player[side="black"] > chess-sidebar-player-picture,
+chess-sidebar-player[data-player-color="black"] > chess-sidebar-player-picture {
+	border-color: #000 !important;
+	background-color: #000 !important;
 }
 
 chess-sidebar-player-name,
@@ -1049,26 +1057,28 @@ chess-chat-message[transit]::before {
 	pointer-events: none;
 }
 
+/* A bolinha da mensagem de encerramento acompanha a cor do jogador.
+   Ex.: se as Brancas se renderem, o avatar da mensagem também fica branco. */
+chess-chat-message[color="white"] > chess-chat-message-picture {
+	border-color: #fff !important;
+	background-color: #fff !important;
+}
+
+chess-chat-message[color="black"] > chess-chat-message-picture {
+	border-color: #000 !important;
+	background-color: #000 !important;
+}
+
+/* Remove a esfera/avatar das mensagens do chat. */
 chess-chat-message-picture {
-	border: solid var(--black-light);
-	background-color: var(--black-light);
-	display: block;
-	box-sizing: border-box;
-	position: absolute;
-	height: calc(var(--sidebar-width) * .125 + 2px);
-	width: calc(var(--sidebar-width) * .125 + 2px);
-	border-width: calc(var(--sidebar-width) * .00625);
-	border-radius: calc(var(--sidebar-width) * .0625);
-	top: -1px;
-	left: -1px;
-	overflow: hidden;
+	display: none !important;
 }
 
 chess-chat-message-name {
 	display: block;
 	white-space: nowrap;
 	margin-top: calc(var(--sidebar-width) * -.0075);
-	margin-left: calc(var(--sidebar-width) * .11);
+	margin-left: 0;
 	line-height: calc(var(--sidebar-width) * .045);
 	font-size: .75rem;
 }
@@ -1085,7 +1095,7 @@ chess-chat-message-text {
 	line-height: calc(var(--sidebar-width) * .06);
 	margin-bottom: calc(var(--sidebar-width) * -.02);
 	width: max-content;
-	text-indent: calc(var(--sidebar-width) * .11);
+	text-indent: 0;
 }
 
 @media (max-aspect-ratio: 35/50) {

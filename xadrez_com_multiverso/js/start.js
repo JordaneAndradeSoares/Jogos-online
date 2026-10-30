@@ -6,8 +6,9 @@ window.addEventListener("load", () => {
     public: false,
     time: { start: [-1, -1] },
     players: [
-      { name: "Brancas", side: 0 },
-      { name: "Pretas", side: 1 }
+      // O índice 0 é sempre o lado preto; o índice 1 é o lado branco.
+      { name: "Pretas" },
+      { name: "Brancas" }
     ]
   };
   try {
