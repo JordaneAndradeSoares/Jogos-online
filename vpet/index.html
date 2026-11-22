@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Meu Pet - Simulador e Arcade</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="zone-arena">
+  <div id="app">
+    <header class="hud">
+      <div class="hud-stats">
+        <div class="stat">
+          <label>ENERGIA</label>
+          <div class="bar"><div id="bar-energy" class="fill energy"></div></div>
+        </div>
+        <div class="stat xp-stat">
+          <label>EXPERIÊNCIA</label>
+          <div class="bar"><div id="bar-xp" class="fill xp"></div></div>
+          <div class="xp-info">
+            <span><strong id="xp-val">0</strong> / <strong id="xp-next">100</strong> XP</span>
+            <span id="xp-left">Faltam 100 XP</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-meta">
+        <div class="badge coin-badge">MOEDAS: <span id="bits-val">180</span></div>
+        <div class="badge">NÍVEL <span id="level-val">1</span>/100</div>
+      </div>
+    </header>
+
+    <main class="main-stage">
+      <div class="creature-header">
+        <span id="creature-stage-label" class="stage-tag">ESTÁGIO I</span>
+        <h1 id="creature-name" class="creature-name">SLIME</h1>
+        <span id="creature-file-label" class="file-tag">imagens/slime.png</span>
+      </div>
+
+      <div id="creature-box" class="creature-box">
+        <div id="status-toast" class="status-toast hidden"></div>
+        <img id="creature-img" src="imagens/slime.png" alt="Slime" />
+      </div>
+
+      <div id="panel-content" class="panel-content"></div>
+    </main>
+
+    <div id="sleep-veil" class="sleep-veil"></div>
+
+    <nav class="bottom-tabs">
+      <button class="tab-btn active" data-tab="arena">ARENA</button>
+      <button class="tab-btn" data-tab="nutricao">NUTRICAO</button>
+      <button class="tab-btn" data-tab="evolucao">EVOLUÇÃO</button>
+      <button class="tab-btn" data-tab="repouso">REPOUSO</button>
+      <button class="tab-btn" data-tab="minijogos">JOGOS</button>
+    </nav>
+  </div>
+
+  <div id="arcade-overlay" class="arcade-overlay hidden">
+    <div class="arcade-bar">
+      <button id="btn-exit-game" class="btn-danger">VOLTAR</button>
+      <span id="arcade-title">MINIJOGO</span>
+      <span class="badge coin-badge">MOEDAS: <span id="arcade-bits-val">180</span></span>
+    </div>
+    <iframe id="arcade-frame" src="about:blank" allowfullscreen></iframe>
+  </div>
+
+  <script src="js/evolution-tree.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
