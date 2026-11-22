@@ -43,7 +43,7 @@ const FOODS = [
 const ARCADE_GAMES = [
   { name: "JOGO DA VELHA", desc: "Vença e ganhe 10 moedas", path: "minijogos/jogo_da_velha.html" },
   { name: "QUEDA", desc: "Desvie e colete moedas", path: "minijogos/queda.html" },
-  { name: "CHUVA VERDE", desc: "Colete as moedas que caem", path: "minijogos/chuva_verde.html" },
+  { name: "CHUVA", desc: "Colete as moedas que caem", path: "minijogos/chuva_verde.html" },
   { name: "SNAKE", desc: "Colete moedas e cresça", path: "minijogos/snake.html" },
   { name: "NAVE", desc: "Desvie e colete moedas", path: "minijogos/nave.html" }
 ];
