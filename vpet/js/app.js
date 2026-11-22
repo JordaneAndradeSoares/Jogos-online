@@ -212,7 +212,6 @@ window.feedPet = (idx) => {
   if (data.bits < f.cost) return toast("MOEDAS INSUFICIENTES");
   data.bits -= f.cost;
   data.energy = Math.min(100, data.energy + f.energy);
-  gainXP(f.xp);
   pulseBox();
   DigiAudio.beep(480, 0.1, "triangle");
   renderHUD();
