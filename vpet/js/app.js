@@ -35,9 +35,9 @@ if (data.level >= MAX_LEVEL) data.xp = 0;
 let activeTab = "arena";
 
 const FOODS = [
-  { id: "data_berry", name: "Comida 1", cost: 10, energy: 18, xp: 10 },
-  { id: "digi_meat", name: "Comida 2", cost: 22, energy: 35, xp: 18 },
-  { id: "core_gel", name: "Comida 3", cost: 35, energy: 50, xp: 28 }
+  { id: "data_berry", name: "Comida 1", cost: 10, energy: 18 },
+  { id: "digi_meat", name: "Comida 2", cost: 22, energy: 35 },
+  { id: "core_gel", name: "Comida 3", cost: 35, energy: 50 }
 ];
 
 const ARCADE_GAMES = [
